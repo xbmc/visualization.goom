@@ -1,0 +1,16 @@
+Source: xbmc-visualization-goom
+Priority: extra
+Maintainer: Arne Morten Kvarving <spiff@xbmc.org>
+Build-Depends: debhelper (>= 8.0.0), cmake, xbmc-addon-dev,
+               xbmc-visualization-dev, libgl1-mesa-dev, libglew-dev,
+               automake, autoconf, libtool
+Standards-Version: 3.9.2
+Section: libs
+Homepage: http://xbmc.org
+
+Package: xbmc-visualization-goom
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: GOOM visualization for XBMC
+ GOOM visualization for XBMC
