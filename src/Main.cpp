@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2005-2008 Team XBMC
+ *      Copyright (C) 2005-2013 Team XBMC
  *      http://www.xbmc.org
  *
  *  This Program is free software; you can redistribute it and/or modify
@@ -13,9 +13,8 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, write to
- *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
- *  http://www.gnu.org/copyleft/gpl.html
+ *  along with XBMC; see the file COPYING.  If not, see
+ *  <http://www.gnu.org/licenses/>.
  *
  */
 
@@ -27,9 +26,11 @@ Goom Visualization Interface for XBMC
 
 */
 
+#define __STDC_LIMIT_MACROS
 
-#include "xbmc_vis_dll.h"
+#include <xbmc/xbmc_vis_dll.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <string>
 extern "C" {
@@ -59,10 +60,10 @@ using namespace std;
 //-- Create -------------------------------------------------------------------
 // Called once when the visualisation is created by XBMC. Do any setup here.
 //-----------------------------------------------------------------------------
-extern "C" ADDON_STATUS Create(void* hdl, void* props)
+extern "C" ADDON_STATUS ADDON_Create(void* hdl, void* props)
 {
   if (!props)
-    return STATUS_UNKNOWN;
+    return ADDON_STATUS_UNKNOWN;
 
   VIS_PROPS* visprops = (VIS_PROPS*)props;
 
@@ -79,7 +80,7 @@ extern "C" ADDON_STATUS Create(void* hdl, void* props)
 
   g_goom = goom_init(g_tex_width, g_tex_height);
   if (!g_goom)
-    return STATUS_UNKNOWN;
+    return ADDON_STATUS_UNKNOWN;
 
   g_goom_buffer = (unsigned char*)malloc(g_tex_width * g_tex_height * 4);
   goom_set_screenbuffer( g_goom, g_goom_buffer );
@@ -89,14 +90,14 @@ extern "C" ADDON_STATUS Create(void* hdl, void* props)
   g_window_xpos = visprops->x;
   g_window_ypos = visprops->y;
 
-  return STATUS_OK;
+  return ADDON_STATUS_OK;
 }
 
 //-- Destroy -------------------------------------------------------------------
 // Do everything before unload of this add-on
 // !!! Add-on master function !!!
 //-----------------------------------------------------------------------------
-extern "C" void Destroy()
+extern "C" void ADDON_Destroy()
 {
   if ( g_goom )
   {
@@ -124,7 +125,7 @@ extern "C" void Start(int iChannels, int iSamplesPerSec, int iBitsPerSample, con
 //-- Stop ---------------------------------------------------------------------
 // Called when the visualisation is closed by XBMC
 //-----------------------------------------------------------------------------
-extern "C" void Stop()
+extern "C" void ADDON_Stop()
 {
   if (g_texid)
   {
@@ -136,10 +137,15 @@ extern "C" void Stop()
 //-- Audiodata ----------------------------------------------------------------
 // Called by XBMC to pass new audio data to the vis
 //-----------------------------------------------------------------------------
-extern "C" void AudioData(const short* pAudioData, int iAudioDataLength, float *pFreqData, int iFreqDataLength)
+extern "C" void AudioData(const float* pAudioData, int iAudioDataLength, float *pFreqData, int iFreqDataLength)
 {
-  int copysize = iAudioDataLength < (int)sizeof( g_audio_data ) ? iAudioDataLength : (int)sizeof( g_audio_data );
-  memcpy( g_audio_data, pAudioData, copysize );
+  int copysize = iAudioDataLength < (int)sizeof( g_audio_data ) >> 1 ? iAudioDataLength : (int)sizeof( g_audio_data ) >> 1;
+  int ipos, i;
+  for(ipos = 0, i = 0; i < copysize; i += 2, ++ipos)
+  {
+    g_audio_data[0][ipos] = (int)(pAudioData[i  ] * (INT16_MAX+.5f));
+    g_audio_data[1][ipos] = (int)(pAudioData[i+1] * (INT16_MAX+.5f));
+  }
 }
 
 
@@ -253,7 +259,7 @@ extern "C" unsigned int GetSubModules(char ***names)
 // Returns true if this add-on use settings
 // !!! Add-on master function !!!
 //-----------------------------------------------------------------------------
-extern "C" bool HasSettings()
+extern "C" bool ADDON_HasSettings()
 {
   return false;
 }
@@ -262,16 +268,16 @@ extern "C" bool HasSettings()
 // Returns the current Status of this visualisation
 // !!! Add-on master function !!!
 //-----------------------------------------------------------------------------
-extern "C" ADDON_STATUS GetStatus()
+extern "C" ADDON_STATUS ADDON_GetStatus()
 {
-  return STATUS_OK;
+  return ADDON_STATUS_OK;
 }
 
 //-- GetSettings --------------------------------------------------------------
 // Return the settings for XBMC to display
 // !!! Add-on master function !!!
 //-----------------------------------------------------------------------------
-extern "C" unsigned int GetSettings(StructSetting ***sSet)
+extern "C" unsigned int ADDON_GetSettings(ADDON_StructSetting ***sSet)
 {
   return 0;
 }
@@ -281,7 +287,7 @@ extern "C" unsigned int GetSettings(StructSetting ***sSet)
 // !!! Add-on master function !!!
 //-----------------------------------------------------------------------------
 
-extern "C" void FreeSettings()
+extern "C" void ADDON_FreeSettings()
 {
 }
 
@@ -289,7 +295,15 @@ extern "C" void FreeSettings()
 // Set a specific Setting value (called from XBMC)
 // !!! Add-on master function !!!
 //-----------------------------------------------------------------------------
-extern "C" ADDON_STATUS SetSetting(const char *strSetting, const void* value)
+extern "C" ADDON_STATUS ADDON_SetSetting(const char *strSetting, const void* value)
 {
-  return STATUS_OK;
+  return ADDON_STATUS_OK;
+}
+
+//-- Announce -----------------------------------------------------------------
+// Receive announcements from XBMC
+// !!! Add-on master function !!!
+//-----------------------------------------------------------------------------
+extern "C" void ADDON_Announce(const char *flag, const char *sender, const char *message, const void *data)
+{
 }

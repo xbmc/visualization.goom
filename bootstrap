@@ -1,4 +1,0 @@
-#!/bin/sh
-
-autoreconf -vif
-autoreconf -vif lib/goom2k4-0
