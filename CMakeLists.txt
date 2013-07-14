@@ -29,7 +29,7 @@ ADD_LIBRARY(goom ${SOURCES})
 ADD_DEPENDENCIES(goom libgoom)
 TARGET_LINK_LIBRARIES(goom ${OPENGL_LIBRARIES}
                            ${GLEW_LIBRARIES}
-                           ${CMAKE_BINARY_DIR}/libgoom-prefix/lib/libgoom2.a)
+                           ${CMAKE_BINARY_DIR}/libgoom-prefix/src/libgoom-build/src/.libs/libgoom2.a)
 SET_TARGET_PROPERTIES(goom PROPERTIES VERSION ${GOOM_VERSION}
                                       SOVERSION 13.0
                                       PREFIX "")
