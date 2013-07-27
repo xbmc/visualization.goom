@@ -14,3 +14,11 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: GOOM visualization for XBMC
  GOOM visualization for XBMC
+
+Package: xbmc-visualization-goom-dbg
+Section: debug
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: debug symbols for GOOM visualization for XBMC
+ debug symbols for GOOM visualization for XBMC
+
