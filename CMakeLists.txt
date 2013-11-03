@@ -14,11 +14,15 @@ include_directories(${OpenGL_INCLUDE_DIR}
                     ${PROJECT_SOURCE_DIR}/lib/goom2k4-0/src)
 
 include(ExternalProject)
+set(update_command "")
+if(BOOTSTRAP_IN_TREE)
+  set(update_command UPDATE_COMMAND autoreconf -vif WORKING_DIRECTORY <SOURCE_DIR>)
+endif()
 externalproject_add(libgoom SOURCE_DIR ${PROJECT_SOURCE_DIR}/lib/goom2k4-0
-                    UPDATE_COMMAND ${PROJECT_SOURCE_DIR}/lib/goom2k4-0/autogen.sh WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/lib/goom2k4-0
+                    "${update_command}"
                     CONFIGURE_COMMAND ${PROJECT_SOURCE_DIR}/lib/goom2k4-0/configure --disable-shared --enable-static --with-pic --prefix=<INSTALL_DIR>
                     BUILD_COMMAND ${MAKE}
-                    INSTALL_COMMAND echo)
+                    INSTALL_COMMAND "")
 
 set(GOOM_SOURCES src/Main.cpp)
 
