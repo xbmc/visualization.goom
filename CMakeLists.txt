@@ -15,7 +15,7 @@ include_directories(${OpenGL_INCLUDE_DIR}
 
 include(ExternalProject)
 set(update_command "")
-if(BOOTSTRAP_IN_TREE)
+if(BOOTSTRAP_IN_TREE OR NOT DEFINED BOOTSTRAP_IN_TREE)
   set(update_command UPDATE_COMMAND autoreconf -vif WORKING_DIRECTORY <SOURCE_DIR>)
 endif()
 externalproject_add(libgoom SOURCE_DIR ${PROJECT_SOURCE_DIR}/lib/goom2k4-0
