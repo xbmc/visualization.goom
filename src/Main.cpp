@@ -28,7 +28,7 @@ Goom Visualization Interface for XBMC
 
 #define __STDC_LIMIT_MACROS
 
-#include <xbmc/xbmc_vis_dll.h>
+#include <kodi/xbmc_vis_dll.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
