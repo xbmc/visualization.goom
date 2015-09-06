@@ -1,24 +1,24 @@
-Source: xbmc-visualization-goom
+Source: kodi-visualization-goom
 Priority: extra
 Maintainer: Arne Morten Kvarving <spiff@xbmc.org>
-Build-Depends: debhelper (>= 8.0.0), cmake, xbmc-addon-dev,
-               xbmc-visualization-dev, libgl1-mesa-dev, libglew-dev,
+Build-Depends: debhelper (>= 8.0.0), cmake, kodi-addon-dev,
+               kodi-visualization-dev, libgl1-mesa-dev, libglew-dev,
                automake, autoconf, libtool
 Standards-Version: 3.9.2
 Section: libs
 Homepage: http://xbmc.org
 
-Package: xbmc-visualization-goom
+Package: kodi-visualization-goom
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: GOOM visualization for XBMC
- GOOM visualization for XBMC
+Description: GOOM visualization for Kodi
+ GOOM visualization for Kodi
 
-Package: xbmc-visualization-goom-dbg
+Package: kodi-visualization-goom-dbg
 Section: debug
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: debug symbols for GOOM visualization for XBMC
- debug symbols for GOOM visualization for XBMC
+Description: debug symbols for GOOM visualization for Kodi
+ debug symbols for GOOM visualization for Kodi
 

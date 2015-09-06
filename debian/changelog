@@ -1,4 +1,4 @@
-xbmc-visualization-goom (1.0.1-1~precise) precise; urgency=low
+kodi-visualization-goom (1.0.1-1~precise) precise; urgency=low
 
   * Fix installation paths
 
