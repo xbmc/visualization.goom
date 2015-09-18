@@ -28,7 +28,7 @@ Goom Visualization Interface for XBMC
 
 #define __STDC_LIMIT_MACROS
 
-#include <kodi/xbmc_vis_dll.h>
+#include <xbmc_vis_dll.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -85,10 +85,6 @@ extern "C" ADDON_STATUS ADDON_Create(void* hdl, void* props)
   g_goom_buffer = (unsigned char*)malloc(g_tex_width * g_tex_height * 4);
   goom_set_screenbuffer( g_goom, g_goom_buffer );
   memset( g_audio_data, 0, sizeof(g_audio_data) );
-  g_window_width = visprops->width;
-  g_window_height = visprops->height;
-  g_window_xpos = visprops->x;
-  g_window_ypos = visprops->y;
 
   return ADDON_STATUS_OK;
 }
@@ -114,10 +110,15 @@ extern "C" void ADDON_Destroy()
 //-- Start --------------------------------------------------------------------
 // Called when a new soundtrack is played
 //-----------------------------------------------------------------------------
-extern "C" void Start(int iChannels, int iSamplesPerSec, int iBitsPerSample, const char* szSongName)
+extern "C" void Start(int x, int y, int w, int h, void* device, float ratio,
+                      int iChannels, int iSamplesPerSec, int iBitsPerSample, const char* szSongName)
 {
   if ( g_goom )
   {
+    g_window_width = w;
+    g_window_height = h;
+    g_window_xpos = x;
+    g_window_ypos = y;
     goom_update( g_goom, g_audio_data, 0, 0, (char*)szSongName, (char*)"XBMC" );
   }
 }
