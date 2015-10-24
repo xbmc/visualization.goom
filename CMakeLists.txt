@@ -13,6 +13,10 @@ include_directories(${OpenGL_INCLUDE_DIR}
                     ${KODI_INCLUDE_DIR}
                     ${PROJECT_SOURCE_DIR}/lib/goom2k4-0/src)
 
+get_filename_component( COMPILER_FILENAME "${CMAKE_C_COMPILER}" NAME )
+string( REGEX REPLACE "-[^-]+$" ""
+        TOOLCHAIN_NAME "${COMPILER_FILENAME}" )
+
 include(ExternalProject)
 set(update_command "")
 if(BOOTSTRAP_IN_TREE OR NOT DEFINED BOOTSTRAP_IN_TREE)
@@ -20,7 +24,7 @@ if(BOOTSTRAP_IN_TREE OR NOT DEFINED BOOTSTRAP_IN_TREE)
 endif()
 externalproject_add(libgoom SOURCE_DIR ${PROJECT_SOURCE_DIR}/lib/goom2k4-0
                     "${update_command}"
-                    CONFIGURE_COMMAND ${PROJECT_SOURCE_DIR}/lib/goom2k4-0/configure --disable-shared --enable-static --with-pic --prefix=<INSTALL_DIR>
+                    CONFIGURE_COMMAND ${PROJECT_SOURCE_DIR}/lib/goom2k4-0/configure --disable-shared --enable-static --with-pic --prefix=<INSTALL_DIR> --host=${TOOLCHAIN_NAME}
                     BUILD_COMMAND ${MAKE}
                     INSTALL_COMMAND "")
 
