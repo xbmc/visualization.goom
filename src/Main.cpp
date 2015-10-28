@@ -37,7 +37,7 @@ extern "C" {
 #include "goom.h"
 }
 #include "goom_config.h"
-#include <GL/glew.h>
+#include <GL/gl.h>
 
 extern int  preset_index;
 char        g_visName[512];
