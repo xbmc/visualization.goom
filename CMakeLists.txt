@@ -7,9 +7,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR})
 find_package(kodi REQUIRED)
 
 find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
 include_directories(${OpenGL_INCLUDE_DIR}
-                    ${GLEW_INCLUDE_DIRS}
                     ${KODI_INCLUDE_DIR}
                     ${PROJECT_SOURCE_DIR}/lib/goom2k4-0/src)
 
@@ -27,7 +25,6 @@ externalproject_add(libgoom SOURCE_DIR ${PROJECT_SOURCE_DIR}/lib/goom2k4-0
 set(GOOM_SOURCES src/Main.cpp)
 
 set(DEPLIBS ${OPENGL_LIBRARIES}
-            ${GLEW_LIBRARIES}
             ${CMAKE_BINARY_DIR}/libgoom-prefix/src/libgoom-build/src/.libs/libgoom2.a)
 
 build_addon(visualization.goom GOOM DEPLIBS)
