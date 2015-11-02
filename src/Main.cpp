@@ -37,7 +37,11 @@ extern "C" {
 #include "goom.h"
 }
 #include "goom_config.h"
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 
 extern int  preset_index;
 char        g_visName[512];
