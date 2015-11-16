@@ -6,12 +6,10 @@
   provider-name="Team XBMC">
   <extension
     point="xbmc.player.musicviz"
-    library_linux="visualization.goom.so"
-    library_windx="visualization.goom.dll"
-    library_osx="visualization.goom.dylib"/>
+    library_@PLATFORM@="@LIBRARY_FILENAME@"/>
   <extension point="xbmc.addon.metadata">
     <summary lang="en">Goom 2k4 Visualization</summary>
     <description lang="en">The Goom 2k4 visualization supports effects like Tentacles, Flash, Stars, Fireworks, Waves, Blurs and Glows and includes a large number of trippy hypnotic effects that dance, swirl and pop with the music</description>
-  <platform>linux</platform>
+  <platform>@PLATFORM@</platform>
   </extension>
 </addon>
