@@ -59,7 +59,7 @@ i*86_64-*-*)
 	HAVE_MMX="yes"
 	;;
 
-powerpc-*-*)
+powerpc-apple-darwin*)
   	CCASFLAGS=-force_cpusubtype_ALL
   	AC_SUBST(CCASFLAGS)
 	AC_DEFINE(CPU_POWERPC)
