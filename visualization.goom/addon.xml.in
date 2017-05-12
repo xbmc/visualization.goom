@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="visualization.goom"
-  version="1.1.1"
+  version="1.1.2"
   name="Goom"
   provider-name="Team XBMC">
+  <requires>@ADDON_DEPENDS@</requires>
   <extension
     point="xbmc.player.musicviz"
     library_@PLATFORM@="@LIBRARY_FILENAME@"/>
