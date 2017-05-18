@@ -1,8 +1,7 @@
 Source: kodi-visualization-goom
 Priority: extra
 Maintainer: Arne Morten Kvarving <spiff@xbmc.org>
-Build-Depends: debhelper (>= 8.0.0), cmake, kodi-addon-dev,
-               kodi-visualization-dev, libgl1-mesa-dev,
+Build-Depends: debhelper (>= 8.0.0), cmake, kodi-addon-dev, libgl1-mesa-dev,
                automake, autoconf, libtool
 Standards-Version: 3.9.2
 Section: libs
