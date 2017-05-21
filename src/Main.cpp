@@ -69,7 +69,7 @@ extern "C" ADDON_STATUS ADDON_Create(void* hdl, void* props)
   if (!props)
     return ADDON_STATUS_UNKNOWN;
 
-  VIS_PROPS* visprops = (VIS_PROPS*)props;
+  AddonProps_Visualization* visprops = (AddonProps_Visualization*)props;
 
   strcpy(g_visName, visprops->name);
   g_configFile = string(visprops->profile) + string("/goom.conf");
@@ -129,7 +129,7 @@ extern "C" void Start(int iChannels, int iSamplesPerSec, int iBitsPerSample, con
 //-- Stop ---------------------------------------------------------------------
 // Called when the visualisation is closed by XBMC
 //-----------------------------------------------------------------------------
-extern "C" void ADDON_Stop()
+extern "C" void Stop()
 {
   if (g_texid)
   {
