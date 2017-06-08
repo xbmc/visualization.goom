@@ -1,6 +1,7 @@
 /*
  *      Copyright (C) 2005-2013 Team XBMC
- *      http://www.xbmc.org
+ *      Copyright (C) 2016-2017 Team Kodi
+ *      http://kodi.tv
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -13,7 +14,7 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with XBMC; see the file COPYING.  If not, see
+ *  along with Kodi; see the file COPYING.  If not, see
  *  <http://www.gnu.org/licenses/>.
  *
  */
@@ -21,14 +22,14 @@
 
 /*
 
-Goom Visualization Interface for XBMC
-- Team XBMC
+Goom Visualization Interface for Kodi
+- Team Kodi
 
 */
 
 #define __STDC_LIMIT_MACROS
 
-#include <xbmc_vis_dll.h>
+#include <kodi/addon-instance/Visualization.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -43,112 +44,107 @@ extern "C" {
 #include <GL/gl.h>
 #endif
 
-extern int  preset_index;
-char        g_visName[512];
-PluginInfo* g_goom  = NULL;
-
-int g_tex_width     = GOOM_TEXTURE_WIDTH;
-int g_tex_height    = GOOM_TEXTURE_HEIGHT;
-int g_window_width  = 512;
-int g_window_height = 512;
-int g_window_xpos   = 0;
-int g_window_ypos   = 0;
-
-GLuint         g_texid       = 0;
-unsigned char* g_goom_buffer = NULL;
-short          g_audio_data[2][512];
-std::string    g_configFile;
-
 using namespace std;
 
-//-- Create -------------------------------------------------------------------
-// Called once when the visualisation is created by XBMC. Do any setup here.
-//-----------------------------------------------------------------------------
-extern "C" ADDON_STATUS ADDON_Create(void* hdl, void* props)
+class CVisualizationGoom
+  : public kodi::addon::CAddonBase,
+    public kodi::addon::CInstanceVisualization
 {
-  if (!props)
-    return ADDON_STATUS_UNKNOWN;
+public:
+  CVisualizationGoom();
+  virtual ~CVisualizationGoom();
 
-  AddonProps_Visualization* visprops = (AddonProps_Visualization*)props;
+  virtual bool Start(int channels, int samplesPerSec, int bitsPerSample, std::string songName) override;
+  virtual void Stop() override;
+  virtual void Render() override;
+  virtual void AudioData(const float* audioData, int audioDataLength, float *freqData, int freqDataLength) override;
 
-  strcpy(g_visName, visprops->name);
-  g_configFile = string(visprops->profile) + string("/goom.conf");
-  std::string presetsDir = string(visprops->presets) + string("/resources");
+private:
+  const static int g_tex_width = GOOM_TEXTURE_WIDTH;
+  const static int g_tex_height = GOOM_TEXTURE_HEIGHT;
 
-  /** Initialise Goom */
-  if (g_goom)
+  PluginInfo* m_goom;
+  unsigned char* m_goom_buffer;
+  short m_audio_data[2][512];
+  int m_window_width;
+  int m_window_height;
+  int m_window_xpos;
+  int m_window_ypos;
+  GLuint m_texid;
+};
+
+CVisualizationGoom::CVisualizationGoom()
+  : m_texid(0)
+{
+  m_goom = goom_init(g_tex_width, g_tex_height);
+  if (!m_goom)
   {
-    goom_close( g_goom );
-    g_goom = NULL;
+    kodi::Log(ADDON_LOG_FATAL, "Goom could not be inited!");
+    return;
   }
 
-  g_goom = goom_init(g_tex_width, g_tex_height);
-  if (!g_goom)
-    return ADDON_STATUS_UNKNOWN;
-
-  g_goom_buffer = (unsigned char*)malloc(g_tex_width * g_tex_height * 4);
-  goom_set_screenbuffer( g_goom, g_goom_buffer );
-  memset( g_audio_data, 0, sizeof(g_audio_data) );
-  g_window_width = visprops->width;
-  g_window_height = visprops->height;
-  g_window_xpos = visprops->x;
-  g_window_ypos = visprops->y;
-
-  return ADDON_STATUS_OK;
+  m_goom_buffer = (unsigned char*)malloc(g_tex_width * g_tex_height * 4);
+  goom_set_screenbuffer( m_goom, m_goom_buffer );
+  memset(m_audio_data, 0, sizeof(m_audio_data) );
+  m_window_width = Width();
+  m_window_height = Height();
+  m_window_xpos = X();
+  m_window_ypos = Y();
 }
 
 //-- Destroy -------------------------------------------------------------------
 // Do everything before unload of this add-on
 // !!! Add-on master function !!!
 //-----------------------------------------------------------------------------
-extern "C" void ADDON_Destroy()
+CVisualizationGoom::~CVisualizationGoom()
 {
-  if ( g_goom )
+  if ( m_goom )
   {
-    goom_close( g_goom );
-    g_goom = NULL;
+    goom_close( m_goom );
+    m_goom = nullptr;
   }
-  if ( g_goom_buffer )
+  if ( m_goom_buffer )
   {
-    free( g_goom_buffer );
-    g_goom_buffer = NULL;
+    free( m_goom_buffer );
+    m_goom_buffer = nullptr;
   }
 }
 
 //-- Start --------------------------------------------------------------------
 // Called when a new soundtrack is played
 //-----------------------------------------------------------------------------
-extern "C" void Start(int iChannels, int iSamplesPerSec, int iBitsPerSample, const char* szSongName)
+bool CVisualizationGoom::Start(int iChannels, int iSamplesPerSec, int iBitsPerSample, std::string szSongName)
 {
-  if ( g_goom )
+  if ( m_goom )
   {
-    goom_update( g_goom, g_audio_data, 0, 0, (char*)szSongName, (char*)"XBMC" );
+    goom_update( m_goom, m_audio_data, 0, 0, (char*)szSongName.c_str(), (char*)"Kodi" );
   }
+  return true;
 }
 
 //-- Stop ---------------------------------------------------------------------
-// Called when the visualisation is closed by XBMC
+// Called when the visualisation is closed by Kodi
 //-----------------------------------------------------------------------------
-extern "C" void Stop()
+void CVisualizationGoom::Stop()
 {
-  if (g_texid)
+  if (m_texid)
   {
-    glDeleteTextures( 1, &g_texid );
-    g_texid = 0;
+    glDeleteTextures( 1, &m_texid );
+    m_texid = 0;
   }
 }
 
 //-- Audiodata ----------------------------------------------------------------
-// Called by XBMC to pass new audio data to the vis
+// Called by Kodi to pass new audio data to the vis
 //-----------------------------------------------------------------------------
-extern "C" void AudioData(const float* pAudioData, int iAudioDataLength, float *pFreqData, int iFreqDataLength)
+void CVisualizationGoom::AudioData( const float* pAudioData, int iAudioDataLength, float *pFreqData, int iFreqDataLength)
 {
-  int copysize = iAudioDataLength < (int)sizeof( g_audio_data ) >> 1 ? iAudioDataLength : (int)sizeof( g_audio_data ) >> 1;
+  int copysize = iAudioDataLength < (int)sizeof( m_audio_data ) >> 1 ? iAudioDataLength : (int)sizeof( m_audio_data ) >> 1;
   int ipos, i;
   for(ipos = 0, i = 0; i < copysize; i += 2, ++ipos)
   {
-    g_audio_data[0][ipos] = (int)(pAudioData[i  ] * (INT16_MAX+.5f));
-    g_audio_data[1][ipos] = (int)(pAudioData[i+1] * (INT16_MAX+.5f));
+    m_audio_data[0][ipos] = (int)(pAudioData[i  ] * (INT16_MAX+.5f));
+    m_audio_data[1][ipos] = (int)(pAudioData[i+1] * (INT16_MAX+.5f));
   }
 }
 
@@ -156,34 +152,34 @@ extern "C" void AudioData(const float* pAudioData, int iAudioDataLength, float *
 //-- Render -------------------------------------------------------------------
 // Called once per frame. Do all rendering here.
 //-----------------------------------------------------------------------------
-extern "C" void Render()
+void CVisualizationGoom::Render()
 {
-  if ( g_goom )
+  if ( m_goom )
   {
-    goom_set_screenbuffer( g_goom, g_goom_buffer );
-    if (!g_texid)
+    goom_set_screenbuffer( m_goom, m_goom_buffer );
+    if (!m_texid)
     {
       // initialize the texture we'll be using
-      glGenTextures( 1, &g_texid );
-      if (!g_texid)
+      glGenTextures( 1, &m_texid );
+      if (!m_texid)
         return;
-      goom_update( g_goom, g_audio_data, 0, 0, NULL, (char*)"XBMC" );
+      goom_update( m_goom, m_audio_data, 0, 0, nullptr, (char*)"Kodi" );
       glEnable(GL_TEXTURE_2D);
-      glBindTexture( GL_TEXTURE_2D, g_texid );
+      glBindTexture( GL_TEXTURE_2D, m_texid );
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexImage2D( GL_TEXTURE_2D, 0, 4, g_tex_width, g_tex_height, 0,
-                    GL_RGBA, GL_UNSIGNED_BYTE, g_goom_buffer );
+                    GL_RGBA, GL_UNSIGNED_BYTE, m_goom_buffer );
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
     else
     {
       // update goom frame and copy to our texture
-      goom_update( g_goom, g_audio_data, 0, 0, NULL, (char*)"XBMC" );
+      goom_update( m_goom, m_audio_data, 0, 0, nullptr, (char*)"Kodi" );
       glEnable(GL_TEXTURE_2D);
-      glBindTexture( GL_TEXTURE_2D, g_texid );
+      glBindTexture( GL_TEXTURE_2D, m_texid );
       glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, g_tex_width, g_tex_height,
-                       GL_RGBA, GL_UNSIGNED_BYTE, g_goom_buffer );
+                       GL_RGBA, GL_UNSIGNED_BYTE, m_goom_buffer );
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
 
@@ -192,16 +188,16 @@ extern "C" void Render()
     {
       glColor3f( 1.0, 1.0, 1.0 );
       glTexCoord2f( 0.0, 0.0 );
-      glVertex2f( g_window_xpos, g_window_ypos );
+      glVertex2f( m_window_xpos, m_window_ypos );
 
       glTexCoord2f( 0.0, 1.0 );
-      glVertex2f( g_window_xpos, g_window_ypos + g_window_height );
+      glVertex2f( m_window_xpos, m_window_ypos + m_window_height );
 
       glTexCoord2f( 1.0, 1.0 );
-      glVertex2f( g_window_xpos + g_window_width, g_window_ypos + g_window_height );
+      glVertex2f( m_window_xpos + m_window_width, m_window_ypos + m_window_height );
 
       glTexCoord2f( 1.0, 0.0 );
-      glVertex2f( g_window_xpos + g_window_width, g_window_ypos );
+      glVertex2f( m_window_xpos + m_window_width, m_window_ypos );
     }
     glEnd();
     glDisable( GL_TEXTURE_2D );
@@ -209,70 +205,4 @@ extern "C" void Render()
   }
 }
 
-//-- GetInfo ------------------------------------------------------------------
-// Tell XBMC our requirements
-//-----------------------------------------------------------------------------
-extern "C" void GetInfo(VIS_INFO* pInfo)
-{
-  pInfo->bWantsFreq = false;
-  pInfo->iSyncDelay = 0;
-}
-
-//-- OnAction -----------------------------------------------------------------
-// Handle XBMC actions such as next preset, lock preset, album art changed etc
-//-----------------------------------------------------------------------------
-extern "C" bool OnAction(long flags, const void *param)
-{
-  bool ret = false;
-  return ret;
-}
-
-//-- GetPresets ---------------------------------------------------------------
-// Return a list of presets to XBMC for display
-//-----------------------------------------------------------------------------
-extern "C" unsigned int GetPresets(char ***presets)
-{
-  return 0;
-}
-
-//-- GetPreset ----------------------------------------------------------------
-// Return the index of the current playing preset
-//-----------------------------------------------------------------------------
-extern "C" unsigned GetPreset()
-{
-  return 0;
-}
-
-//-- IsLocked -----------------------------------------------------------------
-// Returns true if this add-on use settings
-//-----------------------------------------------------------------------------
-extern "C" bool IsLocked()
-{
-  return false;
-}
-
-//-- GetSubModules ------------------------------------------------------------
-// Return any sub modules supported by this vis
-//-----------------------------------------------------------------------------
-extern "C" unsigned int GetSubModules(char ***names)
-{
-  return 0; // this vis supports 0 sub modules
-}
-
-//-- GetStatus ---------------------------------------------------------------
-// Returns the current Status of this visualisation
-// !!! Add-on master function !!!
-//-----------------------------------------------------------------------------
-extern "C" ADDON_STATUS ADDON_GetStatus()
-{
-  return ADDON_STATUS_OK;
-}
-
-//-- SetSetting ---------------------------------------------------------------
-// Set a specific Setting value (called from XBMC)
-// !!! Add-on master function !!!
-//-----------------------------------------------------------------------------
-extern "C" ADDON_STATUS ADDON_SetSetting(const char *strSetting, const void* value)
-{
-  return ADDON_STATUS_OK;
-}
+ADDONCREATOR(CVisualizationGoom) // Don't touch this!
