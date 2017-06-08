@@ -11,6 +11,16 @@
   <extension point="xbmc.addon.metadata">
     <summary lang="en">Goom 2k4 Visualization</summary>
     <description lang="en">The Goom 2k4 visualization supports effects like Tentacles, Flash, Stars, Fireworks, Waves, Blurs and Glows and includes a large number of trippy hypnotic effects that dance, swirl and pop with the music</description>
-  <platform>@PLATFORM@</platform>
+    <platform>@PLATFORM@</platform>
+    <assets>
+      <icon>resources/icon.png</icon>
+      <fanart>resources/fanart.png</fanart>
+      <screenshot>resources/screenshot-01.png</screenshot>
+      <screenshot>resources/screenshot-02.png</screenshot>
+      <screenshot>resources/screenshot-03.png</screenshot>
+      <screenshot>resources/screenshot-04.png</screenshot>
+      <screenshot>resources/screenshot-05.png</screenshot>
+      <screenshot>resources/screenshot-06.png</screenshot>
+    </assets>
   </extension>
 </addon>
