@@ -58,6 +58,7 @@ public:
   virtual void Stop() override;
   virtual void Render() override;
   virtual void AudioData(const float* audioData, int audioDataLength, float *freqData, int freqDataLength) override;
+  virtual bool UpdateTrack(const VisTrack &track) override;
 
 private:
   const static int g_tex_width = GOOM_TEXTURE_WIDTH;
@@ -203,6 +204,15 @@ void CVisualizationGoom::Render()
     glDisable( GL_TEXTURE_2D );
     glEnable(GL_BLEND);
   }
+}
+
+bool CVisualizationGoom::UpdateTrack(const VisTrack &track)
+{
+  if (m_goom)
+  {
+    goom_update(m_goom, m_audio_data, 0, 0, (char*)track.title, (char*)"Kodi");
+  }
+  return true;
 }
 
 ADDONCREATOR(CVisualizationGoom) // Don't touch this!
