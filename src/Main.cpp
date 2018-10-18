@@ -38,15 +38,13 @@ extern "C" {
 #include "goom.h"
 }
 #include "goom_config.h"
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#endif
+#include "shaders/GUIShader.h"
+
+#define BUFFER_OFFSET(i) ((char *)NULL + (i))
 
 using namespace std;
 
-class CVisualizationGoom
+class ATTRIBUTE_HIDDEN CVisualizationGoom
   : public kodi::addon::CAddonBase,
     public kodi::addon::CInstanceVisualization
 {
@@ -63,6 +61,9 @@ public:
 private:
   const static int g_tex_width = GOOM_TEXTURE_WIDTH;
   const static int g_tex_height = GOOM_TEXTURE_HEIGHT;
+  CGUIShader* m_shader;
+  GLuint m_vertexVBO;
+  GLuint m_indexVBO;
 
   PluginInfo* m_goom;
   unsigned char* m_goom_buffer;
@@ -91,6 +92,11 @@ CVisualizationGoom::CVisualizationGoom()
   m_window_height = Height();
   m_window_xpos = X();
   m_window_ypos = Y();
+
+  m_shader = new CGUIShader("vert.glsl", "frag.glsl");
+  m_shader->CompileAndLink();
+  glGenBuffers(1, &m_vertexVBO);
+  glGenBuffers(1, &m_indexVBO);
 }
 
 //-- Destroy -------------------------------------------------------------------
@@ -109,6 +115,12 @@ CVisualizationGoom::~CVisualizationGoom()
     free( m_goom_buffer );
     m_goom_buffer = nullptr;
   }
+
+  delete m_shader;
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glDeleteBuffers(1, &m_vertexVBO);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glDeleteBuffers(1, &m_indexVBO);
 }
 
 //-- Start --------------------------------------------------------------------
@@ -158,14 +170,13 @@ void CVisualizationGoom::Render()
   if ( m_goom )
   {
     goom_set_screenbuffer( m_goom, m_goom_buffer );
+    goom_update( m_goom, m_audio_data, 0, 0, nullptr, (char*)"Kodi" );
     if (!m_texid)
     {
       // initialize the texture we'll be using
       glGenTextures( 1, &m_texid );
       if (!m_texid)
         return;
-      goom_update( m_goom, m_audio_data, 0, 0, nullptr, (char*)"Kodi" );
-      glEnable(GL_TEXTURE_2D);
       glBindTexture( GL_TEXTURE_2D, m_texid );
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -175,17 +186,52 @@ void CVisualizationGoom::Render()
     }
     else
     {
-      // update goom frame and copy to our texture
-      goom_update( m_goom, m_audio_data, 0, 0, nullptr, (char*)"Kodi" );
-      glEnable(GL_TEXTURE_2D);
       glBindTexture( GL_TEXTURE_2D, m_texid );
       glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, g_tex_width, g_tex_height,
                        GL_RGBA, GL_UNSIGNED_BYTE, m_goom_buffer );
       glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     }
 
-    glDisable(GL_BLEND);
-    glBegin( GL_QUADS );
+    glActiveTexture(GL_TEXTURE0);
+
+    m_shader->PushMatrix();
+    m_shader->Enable();
+
+    struct PackedVertex
+    {
+      GLfloat x, y, z;
+      GLfloat r, g, b;
+      GLfloat u, v;
+    } vertex[4] = {{-1.0, -1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0},
+                   { 1.0, -1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0},
+                   { 1.0,  1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0},
+                   {-1.0,  1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0}};
+
+    GLubyte idx[] = {0,1,2,2,3,0};
+
+    GLint posLoc = m_shader->GetPosLoc();
+    GLint colLoc = m_shader->GetColLoc();
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(PackedVertex)*4, &vertex[0], GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 3, GL_FLOAT, 0, sizeof(PackedVertex), BUFFER_OFFSET(offsetof(PackedVertex, x)));
+    glVertexAttribPointer(colLoc, 3, GL_FLOAT, 0, sizeof(PackedVertex), BUFFER_OFFSET(offsetof(PackedVertex, r)));
+
+    glEnableVertexAttribArray(posLoc);
+    glEnableVertexAttribArray(colLoc);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexVBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLubyte)*6, idx, GL_STATIC_DRAW);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, 0);
+
+    glDisableVertexAttribArray(posLoc);
+    glDisableVertexAttribArray(colLoc);
+
+    m_shader->Disable();
+    m_shader->PopMatrix();
+
+/*    glBegin( GL_QUADS );
     {
       glColor3f( 1.0, 1.0, 1.0 );
       glTexCoord2f( 0.0, 0.0 );
@@ -200,9 +246,12 @@ void CVisualizationGoom::Render()
       glTexCoord2f( 1.0, 0.0 );
       glVertex2f( m_window_xpos + m_window_width, m_window_ypos );
     }
+
     glEnd();
+
     glDisable( GL_TEXTURE_2D );
     glEnable(GL_BLEND);
+*/
   }
 }
 
