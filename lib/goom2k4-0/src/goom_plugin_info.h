@@ -1,8 +1,8 @@
 #ifndef _PLUGIN_INFO_H
 #define _PLUGIN_INFO_H
 
+#include "goom.h"
 #include "goom_typedefs.h"
-
 #include "goom_config.h"
 
 #include "goom_graphic.h"
@@ -39,7 +39,7 @@ struct _SOUND_INFO {
 	int timeSinceLastBigGoom;   /* >= 0 */
 
 	float volume;     /* [0..1] */
-	short samples[2][512];
+	gint16 samples[NUM_AUDIO_SAMPLES][AUDIO_SAMPLE_LEN];
 
 	/* other "internal" datas for the sound_tester */
 	float goom_limit; /* auto-updated limit of goom_detection */
