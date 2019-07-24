@@ -37,6 +37,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "goom.h"
 #include "goom_config.h"
 
 #ifdef HAVE_MMX
@@ -149,37 +150,59 @@ typedef struct _IFS_DATA {
 /*****************************************************/
 
 static  DBL
-Gauss_Rand (PluginInfo *goomInfo, DBL c, DBL A, DBL S)
+Gauss_Rand (PluginInfo *goomInfo, DBL c, DBL S, DBL A_mult_1_minus_exp_neg_S)
 {
 	DBL     y;
 
 	y = (DBL) LRAND () / MAXRAND;
-	y = A * (1.0 - exp (-y * y * S)) / (1.0 - exp (-S));
+	y = A_mult_1_minus_exp_neg_S * (1.0 - exp (-y * y * S));
 	if (NRAND (2))
 		return (c + y);
 	return (c - y);
 }
 
 static  DBL
-Half_Gauss_Rand (PluginInfo *goomInfo, DBL c, DBL A, DBL S)
+Half_Gauss_Rand (PluginInfo *goomInfo, DBL c, DBL S, DBL A_mult_1_minus_exp_neg_S)
 {
 	DBL     y;
 
 	y = (DBL) LRAND () / MAXRAND;
-	y = A * (1.0 - exp (-y * y * S)) / (1.0 - exp (-S));
+	y = A_mult_1_minus_exp_neg_S * (1.0 - exp (-y * y * S));
 	return (c + y);
+}
+
+static DBL get_1_minus_exp_neg_S(DBL S) {
+	return 1.0 - exp(-S); 
 }
 
 static void
 Random_Simis (PluginInfo *goomInfo, FRACTAL * F, SIMI * Cur, int i)
 {
+	static DBL c_AS_factor;
+    static DBL r_1_minus_exp_neg_S;
+    static DBL r2_1_minus_exp_neg_S;
+	static DBL A_AS_factor;
+	static DBL A2_AS_factor;
+
+	static int doneInit = 0;
+	if (!doneInit) {
+		c_AS_factor = 0.8 * get_1_minus_exp_neg_S(4.0);
+		r_1_minus_exp_neg_S = get_1_minus_exp_neg_S(3.0);
+		r2_1_minus_exp_neg_S = get_1_minus_exp_neg_S(2.0);
+		A_AS_factor = 360.0 * get_1_minus_exp_neg_S(4.0);
+		A2_AS_factor = A_AS_factor;
+		doneInit = 1;
+	}
+    const DBL r_AS_factor = F->dr_mean*r_1_minus_exp_neg_S;
+	const DBL r2_AS_factor = F->dr2_mean*r2_1_minus_exp_neg_S;
+
 	while (i--) {
-		Cur->c_x = Gauss_Rand (goomInfo, 0.0, .8, 4.0);
-		Cur->c_y = Gauss_Rand (goomInfo, 0.0, .8, 4.0);
-		Cur->r = Gauss_Rand (goomInfo, F->r_mean, F->dr_mean, 3.0);
-		Cur->r2 = Half_Gauss_Rand (goomInfo, 0.0, F->dr2_mean, 2.0);
-		Cur->A = Gauss_Rand (goomInfo, 0.0, 360.0, 4.0) * (M_PI / 180.0);
-		Cur->A2 = Gauss_Rand (goomInfo, 0.0, 360.0, 4.0) * (M_PI / 180.0);
+		Cur->c_x = Gauss_Rand (goomInfo, 0.0, 4.0, c_AS_factor);
+		Cur->c_y = Gauss_Rand (goomInfo, 0.0, 4.0, c_AS_factor);
+		Cur->r = Gauss_Rand (goomInfo, F->r_mean, 3.0, r_AS_factor);
+		Cur->r2 = Half_Gauss_Rand (goomInfo, 0.0, 2.0, r2_AS_factor);
+		Cur->A = Gauss_Rand (goomInfo, 0.0, 4.0, A_AS_factor) * (M_PI / 180.0);
+		Cur->A2 = Gauss_Rand (goomInfo, 0.0, 4.0, A2_AS_factor) * (M_PI / 180.0);
 		Cur++;
 	}
 }

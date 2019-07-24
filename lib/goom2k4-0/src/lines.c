@@ -6,9 +6,10 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "goom.h"
 #include "goom_tools.h"
-#include "drawmethods.h"
 #include "goom_plugin_info.h"
+#include "drawmethods.h"
 
 static inline unsigned char lighten (unsigned char value, float power)
 {
@@ -51,24 +52,24 @@ genline (int id, float param, GMUnitPointer * l, int rx, int ry)
 
 	switch (id) {
 	case GML_HLINE:
-		for (i = 0; i < 512; i++) {
-			l[i].x = ((float) i * rx) / 512.0f;
+		for (i = 0; i < AUDIO_SAMPLE_LEN; i++) {
+			l[i].x = ((float) i * rx) / (float)AUDIO_SAMPLE_LEN;
 			l[i].y = param;
 			l[i].angle = M_PI / 2.0f;
 		}
 		return;
 	case GML_VLINE:
-		for (i = 0; i < 512; i++) {
-			l[i].y = ((float) i * ry) / 512.0f;
+		for (i = 0; i < AUDIO_SAMPLE_LEN; i++) {
+			l[i].y = ((float) i * ry) / (float)AUDIO_SAMPLE_LEN;
 			l[i].x = param;
 			l[i].angle = 0.0f;
 		}
 		return;
 	case GML_CIRCLE:
-		for (i = 0; i < 512; i++) {
+		for (i = 0; i < AUDIO_SAMPLE_LEN; i++) {
 			float   cosa, sina;
 
-			l[i].angle = 2.0f * M_PI * (float) i / 512.0f;
+			l[i].angle = 2.0f * M_PI * (float) i / (float)AUDIO_SAMPLE_LEN;
 			cosa = param * cos (l[i].angle);
 			sina = param * sin (l[i].angle);
 			l[i].x = ((float) rx / 2.0f) + cosa;
@@ -117,7 +118,7 @@ goom_lines_move (GMLine * l)
 	int     i;
 	unsigned char *c1, *c2;
 
-	for (i = 0; i < 512; i++) {
+	for (i = 0; i < AUDIO_SAMPLE_LEN; i++) {
 		l->points[i].x = (l->points2[i].x + 39.0f * l->points[i].x) / 40.0f;
 		l->points[i].y = (l->points2[i].y + 39.0f * l->points[i].y) / 40.0f;
 		l->points[i].angle =
@@ -169,9 +170,9 @@ goom_lines_init (PluginInfo *goomInfo, int rx, int ry,
 
 	l->goomInfo = goomInfo;
 	
-	l->points = (GMUnitPointer *) malloc (512 * sizeof (GMUnitPointer));
-	l->points2 = (GMUnitPointer *) malloc (512 * sizeof (GMUnitPointer));
-	l->nbPoints = 512;
+	l->points = (GMUnitPointer *) malloc (AUDIO_SAMPLE_LEN * sizeof (GMUnitPointer));
+	l->points2 = (GMUnitPointer *) malloc (AUDIO_SAMPLE_LEN * sizeof (GMUnitPointer));
+	l->nbPoints = AUDIO_SAMPLE_LEN;
 
 	l->IDdest = IDdest;
 	l->param = paramD;
@@ -204,32 +205,40 @@ goom_lines_free (GMLine ** l)
 	l = NULL;
 }
 
-void goom_lines_draw (PluginInfo *plug, GMLine * line, gint16 data[512], Pixel *p)
+
+#define MAX_NORMALIZED_PEAK 2000.0
+
+inline float getNormalizedData(PluginInfo *goomInfo, short data)
+{
+	return MAX_NORMALIZED_PEAK * (float)data / goomInfo->sound.allTimesMax;
+}
+
+void goom_lines_draw (PluginInfo *goomInfo, GMLine *line, const gint16 data[AUDIO_SAMPLE_LEN], Pixel *p)
 {
 	if (line != NULL) {
-		int     i, x1, y1;
 		guint32 color = line->color;
-		GMUnitPointer *pt = &(line->points[0]);
+		const GMUnitPointer *pt = &(line->points[0]);
 
-		float   cosa = cos (pt->angle) / 1000.0f;
-		float   sina = sin (pt->angle) / 1000.0f;
+		const float cosa = cos (pt->angle) / 1000.0f;
+		const float sina = sin (pt->angle) / 1000.0f;
 
 		lightencolor (&color, line->power);
 
-		x1 = (int) (pt->x + cosa * line->amplitude * data[0]);
-		y1 = (int) (pt->y + sina * line->amplitude * data[0]);
+		const float fdata = getNormalizedData(goomInfo, data[0]);
+		int x1 = (int) (pt->x + cosa * line->amplitude * fdata);
+		int y1 = (int) (pt->y + sina * line->amplitude * fdata);
 
-		for (i = 1; i < 512; i++) {
-			int     x2, y2;
-			GMUnitPointer *pt = &(line->points[i]);
+		for (int i = 1; i < AUDIO_SAMPLE_LEN; i++) {
+			const GMUnitPointer *pt = &(line->points[i]);
 
-			float   cosa = cos (pt->angle) / 1000.0f;
-			float   sina = sin (pt->angle) / 1000.0f;
+			const float cosa = cos (pt->angle) / 1000.0f;
+			const float sina = sin (pt->angle) / 1000.0f;
 
-			x2 = (int) (pt->x + cosa * line->amplitude * data[i]);
-			y2 = (int) (pt->y + sina * line->amplitude * data[i]);
+   			const float fdata = getNormalizedData(goomInfo, data[i]);
+			const int x2 = (int) (pt->x + cosa * line->amplitude * fdata);
+			const int y2 = (int) (pt->y + sina * line->amplitude * fdata);
 
-			plug->methods.draw_line (p, x1, y1, x2, y2, color, line->screenX, line->screenY);
+			goomInfo->methods.draw_line (p, x1, y1, x2, y2, color, line->screenX, line->screenY);
 
 			x1 = x2;
 			y1 = y2;

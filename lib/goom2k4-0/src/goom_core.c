@@ -14,6 +14,7 @@
 #include <inttypes.h>
 
 #include "goom.h"
+#include "goom_plugin_info.h"
 #include "goom_tools.h"
 #include "goom_filters.h"
 #include "lines.h"
@@ -22,7 +23,6 @@
 #include "gfontlib.h"
 
 #include "sound_tester.h"
-#include "goom_plugin_info.h"
 #include "goom_fx.h"
 #include "goomsl.h"
 
@@ -35,7 +35,7 @@
 static void choose_a_goom_line (PluginInfo *goomInfo, float *param1, float *param2, int *couleur,
                                 int *mode, float *amplitude, int far);
 
-static void update_message (PluginInfo *goomInfo, char *message);
+static void update_message (PluginInfo *goomInfo, const char *message);
 
 static void init_buffers(PluginInfo *goomInfo, int buffsize)
 {
@@ -142,14 +142,15 @@ int goom_set_screenbuffer(PluginInfo *goomInfo, void *buffer)
 
 * WARNING: this is a 600 lines function ! (21-11-2003)
 */
-guint32 *goom_update (PluginInfo *goomInfo, gint16 data[2][512],
-                      int forceMode, float fps, char *songTitle, char *message)
+guint32 *goom_update (PluginInfo *goomInfo, 
+                      const gint16 data[NUM_AUDIO_SAMPLES][AUDIO_SAMPLE_LEN],
+                      int forceMode, float fps, const char *songTitle, const char *message)
 {
     Pixel *return_val;
     guint32 pointWidth;
     guint32 pointHeight;
     int     i;
-    float   largfactor;	/* elargissement de l'intervalle d'évolution des points */
+    float   largfactor;	/* elargissement de l'intervalle d'Ã©volution des points */
     Pixel *tmp;
     
     ZoomFilterData *pzfd;
@@ -186,34 +187,61 @@ guint32 *goom_update (PluginInfo *goomInfo, gint16 data[2][512],
         goomInfo->ifs_fx.apply(&goomInfo->ifs_fx, goomInfo->p2, goomInfo->p1, goomInfo);
     
     if (goomInfo->curGState->drawPoints) {
-        for (i = 1; i * 15 <= goomInfo->sound.speedvar*80.0f + 15; i++) {
-            goomInfo->update.loopvar += goomInfo->sound.speedvar*50 + 1;
-            
-            pointFilter (goomInfo, goomInfo->p1,
-                         YELLOW,
-                         ((pointWidth - 6.0f) * largfactor + 5.0f),
-                         ((pointHeight - 6.0f) * largfactor + 5.0f),
-                         i * 152.0f, 128.0f, goomInfo->update.loopvar + i * 2032);
-            pointFilter (goomInfo, goomInfo->p1, ORANGE,
-                         ((pointWidth / 2) * largfactor) / i + 10.0f * i,
-                         ((pointHeight / 2) * largfactor) / i + 10.0f * i,
-                         96.0f, i * 80.0f, goomInfo->update.loopvar / i);
-            pointFilter (goomInfo, goomInfo->p1, VIOLET,
-                         ((pointHeight / 3 + 5.0f) * largfactor) / i + 10.0f * i,
-                         ((pointHeight / 3 + 5.0f) * largfactor) / i + 10.0f * i,
-                         i + 122.0f, 134.0f, goomInfo->update.loopvar / i);
-            pointFilter (goomInfo, goomInfo->p1, BLACK,
-                         ((pointHeight / 3) * largfactor + 20.0f),
-                         ((pointHeight / 3) * largfactor + 20.0f),
-                         58.0f, i * 66.0f, goomInfo->update.loopvar / i);
-            pointFilter (goomInfo, goomInfo->p1, WHITE,
-                         (pointHeight * largfactor + 10.0f * i) / i,
-                         (pointHeight * largfactor + 10.0f * i) / i,
-                         66.0f, 74.0f, goomInfo->update.loopvar + i * 500);
+        const int speedvarMult80Plus15 = goomInfo->sound.speedvar*80;
+        const int speedvarMult50Plus1 = goomInfo->sound.speedvar*50 + 1;
+
+        const float pointWidthDiv2 = pointWidth / 2;
+        const float pointHeightDiv2 = pointHeight / 2;
+        const float pointWidthDiv3 = pointWidth / 3;
+        const float pointHeightDiv3 = pointHeight / 3;
+        const float yellow_t1 = (pointWidth - 6.0f) * largfactor + 5.0f;
+        const float yellow_t2 = (pointHeight - 6.0f) * largfactor + 5.0f;
+        const float black_t1 = pointHeightDiv3 * largfactor + 20.0f;
+        const float black_t2 = black_t1;
+        const float pointWidthDiv2MultLarge = pointWidthDiv2 * largfactor;
+        const float pointHeightDiv2MultLarge = pointHeightDiv2 * largfactor;
+        const float pointWidthDiv3MultLarge = (pointWidthDiv3 + 5.0f) * largfactor;
+        const float pointHeightDiv3MultLarge = (pointHeightDiv3 + 5.0f) * largfactor;
+        const float pointWidthMultLarge = pointWidth * largfactor;
+        const float pointHeightMultLarge = pointHeight * largfactor;
+
+        for (i = 1; i * 15 <= speedvarMult80Plus15; i++) {
+            goomInfo->update.loopvar += speedvarMult50Plus1;
+
+            const Uint loopvar_div_i = goomInfo->update.loopvar / i;
+            const float i_mult_10 = 10.0f * i;
+
+            const float yellow_t3 = i * 152.0f;
+            const float yellow_t4 = 128.0f;
+            const Uint yellow_cycle = goomInfo->update.loopvar + i * 2032;
+            const float orange_t1 = pointWidthDiv2MultLarge / i + i_mult_10;
+            const float orange_t2 = pointHeightDiv2MultLarge / i + i_mult_10;
+            const float orange_t3 = 96.0f;
+            const float orange_t4 = i * 80.0f;
+            const Uint orange_cycle = loopvar_div_i;
+            const float violet_t1 = pointWidthDiv3MultLarge / i + i_mult_10;
+            const float violet_t2 = pointHeightDiv3MultLarge / i + i_mult_10;
+            const float violet_t3 = i + 122.0f;
+            const float violet_t4 = 134.0f;
+            const Uint violet_cycle = loopvar_div_i;
+            const float black_t3 = 58.0f;
+            const float black_t4 = i * 66.0f;
+            const Uint black_cycle = loopvar_div_i;
+            const float white_t1 = (pointWidthMultLarge + i_mult_10) / i;
+            const float white_t2 = (pointHeightMultLarge + i_mult_10) / i;
+            const float white_t3 = 66.0f;
+            const float white_t4 = 74.0f;
+            const Uint white_cycle = goomInfo->update.loopvar + i * 500;
+
+            pointFilter(goomInfo, goomInfo->p1, YELLOW, yellow_t1, yellow_t2, yellow_t3, yellow_t4, yellow_cycle);
+            pointFilter(goomInfo, goomInfo->p1, ORANGE, orange_t1, orange_t2, orange_t3, orange_t4, orange_cycle);
+            pointFilter(goomInfo, goomInfo->p1, VIOLET, violet_t1, violet_t2, violet_t3, violet_t4, violet_cycle);
+            pointFilter(goomInfo, goomInfo->p1, BLACK,  black_t1,  black_t2,  black_t3,  black_t4,  black_cycle);
+            pointFilter(goomInfo, goomInfo->p1, WHITE,  white_t1,  white_t2,  white_t3,  white_t4,  white_cycle);
         }
     }
     
-    /* par défaut pas de changement de zoom */
+    /* par dÃ©faut pas de changement de zoom */
     pzfd = NULL;
     
     /* 
@@ -530,7 +558,7 @@ guint32 *goom_update (PluginInfo *goomInfo, gint16 data[2][512],
         }
         
         /*
-         * arreter de decrémenter au bout d'un certain temps
+         * arreter de decrÃ©menter au bout d'un certain temps
          */
         if ((goomInfo->cycle % 101 == 0) && (goomInfo->update.zoomFilterData.pertedec == 7)) {
             pzfd = &goomInfo->update.zoomFilterData;
@@ -780,7 +808,7 @@ void goom_close (PluginInfo *goomInfo)
 
 
 /* *** */
-void
+static void
 choose_a_goom_line (PluginInfo *goomInfo, float *param1, float *param2, int *couleur, int *mode,
                     float *amplitude, int far)
 {
@@ -837,7 +865,7 @@ choose_a_goom_line (PluginInfo *goomInfo, float *param1, float *param2, int *cou
 /*
  * Met a jour l'affichage du message defilant
  */
-void update_message (PluginInfo *goomInfo, char *message) {
+static void update_message (PluginInfo *goomInfo, const char *message) {
     
     int fin = 0;
     
