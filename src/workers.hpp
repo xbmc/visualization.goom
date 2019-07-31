@@ -12,6 +12,7 @@ class Worker {
 public:
     class DataPackage {
     public:
+        virtual ~DataPackage() {}
         virtual void SetFinishedWith()=0;
         virtual void* GetData() const=0;
         virtual unsigned long GetTag() const=0;
