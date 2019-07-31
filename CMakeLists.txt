@@ -34,6 +34,10 @@ externalproject_add(libgoom SOURCE_DIR ${PROJECT_SOURCE_DIR}/lib/goom2k4-0
                     INSTALL_COMMAND "")
 
 set(GOOM_SOURCES src/Main.cpp src/workers.cpp)
+set(GOOM_HEADERS src/buffer_savers.hpp
+                 src/goom_config.h
+                 src/tsqueue.hpp
+                 src/workers.hpp)
 
 set(DEPLIBS ${OPENGL_LIBRARIES}
             ${CMAKE_BINARY_DIR}/libgoom-prefix/src/libgoom-build/src/.libs/libgoom2.a)
