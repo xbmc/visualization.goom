@@ -63,13 +63,13 @@ class ATTRIBUTE_HIDDEN CVisualizationGoom
 {
 public:
   CVisualizationGoom();
-  virtual ~CVisualizationGoom();
+  ~CVisualizationGoom() override;
 
-  virtual bool Start(int channels, int samplesPerSec, int bitsPerSample, std::string songName) override;
-  virtual void Stop() override;
-  virtual void Render() override;
-  virtual void AudioData(const float* audioData, int audioDataLength, float* freqData, int freqDataLength) override;
-  virtual bool UpdateTrack(const VisTrack &track) override;
+  bool Start(int channels, int samplesPerSec, int bitsPerSample, std::string songName) override;
+  void Stop() override;
+  void Render() override;
+  void AudioData(const float* audioData, int audioDataLength, float* freqData, int freqDataLength) override;
+  bool UpdateTrack(const VisTrack &track) override;
 
   // kodi::gui::gl::CShaderProgram
   void OnCompiledAndLinked() override;
