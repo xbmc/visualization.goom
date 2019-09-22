@@ -38,6 +38,7 @@ extern "C" {
 
 #include <kodi/addon-instance/Visualization.h>
 #include <kodi/gui/gl/Shader.h>
+#include <kodi/General.h>
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -243,8 +244,8 @@ void CVisualizationGoom::Stop()
   m_worker_thread.join();
   kodi::Log(ADDON_LOG_DEBUG, "Stop: Processed buffers thread stopped.");
 
-  m_audioBufferSaver.Write("/tmp/goom_audio_buffer_%05d", false);
-  m_goomBufferSaver.Write("/tmp/goom_buffer_%05d", true);
+  m_audioBufferSaver.Write(kodi::GetTempAddonPath("/goom_audio_buffer_%05d").c_str(), false);
+  m_goomBufferSaver.Write(kodi::GetTempAddonPath("/goom_buffer_%05d").c_str(), true);
 
   if (m_texid)
   {
@@ -489,7 +490,6 @@ void CVisualizationGoom::Render()
   glDisable(GL_BLEND);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_texid);
-
   if (dataPackagePtr != nullptr)
   {
 #ifdef HAS_GL

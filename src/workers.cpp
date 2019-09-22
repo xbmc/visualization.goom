@@ -4,6 +4,7 @@
 #include <thread>
 #include "buffer_savers.hpp"
 #include "workers.hpp"
+#include <kodi/General.h>
 
 
 class CircularBufferDataPackage: public Worker::DataPackage {
@@ -116,7 +117,7 @@ void Worker::AddRequest(const void* inputData, unsigned long tag)
 
     if (tag == 109) {
       const short* audioBuff = reinterpret_cast<const short*>(m_requestStore[m_currentRequestStoreItem].data);  
-      WriteFormattedArray(string_format("/tmp/request_buffer_%05d", tag), "request", 
+      WriteFormattedArray(string_format(kodi::GetTempAddonPath("/request_buffer_%05d"), tag), "request", 
         m_requestStore[m_currentRequestStoreItem].tag, audioBuff, m_sizeofRequestDataItems/sizeof(short));
     }
 }    
