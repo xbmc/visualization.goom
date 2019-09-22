@@ -368,17 +368,13 @@ bool CVisualizationGoom::InitGLObjects()
     return false;
   }
   glClear(GL_COLOR_BUFFER_BIT);
-  glColor4f(1.0, 1.0, 1.0, 1.0);
-  glEnable(GL_TEXTURE_2D);
+
   glBindTexture(GL_TEXTURE_2D, m_texid);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
   glGenerateMipmap(GL_TEXTURE_2D);
-//    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_BLEND);
-//    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g_tex_width, g_tex_height, 0, g_pixelFormat, GL_UNSIGNED_BYTE, 0);
   glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -498,7 +494,6 @@ void CVisualizationGoom::Render()
 
   delete dataPackagePtr;
 
-  glEnable(GL_TEXTURE_2D);
   glDisable(GL_BLEND);
   glActiveTexture(GL_TEXTURE0);
 
@@ -508,7 +503,6 @@ void CVisualizationGoom::Render()
   DisableShader();
 
   glEnable(GL_BLEND);
-  glDisable(GL_TEXTURE_2D);
   glBindVertexArray(0);
 }
 
