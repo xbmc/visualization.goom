@@ -19,7 +19,6 @@
  *
  */
 
-
 /*
 
 Goom Visualization Interface for Kodi
@@ -29,37 +28,28 @@ Goom Visualization Interface for Kodi
 
 #define __STDC_LIMIT_MACROS
 
-#include <kodi/addon-instance/Visualization.h>
-
-#define GL_GLEXT_PROTOTYPES
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#else
-#include <GL/gl.h>
-#include <GL/glext.h>
-#endif
-
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <kodi/gui/gl/Shader.h>
+#include "workers.hpp"
+#include "buffer_savers.hpp"
 
 extern "C" {
 #include "goom.h"
 #include "goom_config.h"
 }
 
+#include <kodi/addon-instance/Visualization.h>
+#include <kodi/gui/gl/Shader.h>
+
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <functional>
 #include <string>
 #include <thread>
-#include <functional>
-#include "workers.hpp"
-#include "buffer_savers.hpp"
-
 
 class ATTRIBUTE_HIDDEN CVisualizationGoom
   : public kodi::addon::CAddonBase,
     public kodi::addon::CInstanceVisualization,
-    kodi::gui::gl::CShaderProgram
+    private kodi::gui::gl::CShaderProgram
 {
 public:
   CVisualizationGoom();
@@ -90,16 +80,16 @@ private:
   int m_window_ypos;
 
   PluginInfo* m_goom;
-  bool m_started;
+  bool m_started = false;
 
   SamplesArray m_audioData;
-  bool m_audioStarted;
-  unsigned long m_numTimesAudioSampled;
+  bool m_audioStarted = false;
+  unsigned long m_numTimesAudioSampled = 0;
   std::string m_currentSongName;
 
-  unsigned long m_frameNum;
+  unsigned long m_frameNum = 0;
   const static int g_maxNumSkippedFramesInARow = 0;
-  int m_numSkippedFramesInARow;
+  int m_numSkippedFramesInARow = 0;
   unsigned long m_numBufferWaits;
   std::thread m_worker_thread;
   Worker m_worker;
@@ -122,7 +112,7 @@ private:
   void InitQuadData();
 
   const static bool g_usePixelBufferObjects = true;
-  GLuint m_texid;
+  GLuint m_texid = 0;
   const static int g_pixelFormat = GL_RGBA;
   const static int g_numPbos = 3;
   GLuint m_pboIds[g_numPbos];
@@ -138,14 +128,7 @@ private:
 };
 
 CVisualizationGoom::CVisualizationGoom()
-  : m_texid(0),
-    m_started(false),
-    m_frameNum(0),
-    m_numSkippedFramesInARow(0),
-    m_audioStarted(false),
-    m_currentSongName(""),
-    m_numTimesAudioSampled(0),
-    m_goomBufferSaver("Goom Buffer Saver", g_maxNumSavedGoomBuffers, g_numGoomBufferElements, g_saveGoomBuffers),
+  : m_goomBufferSaver("Goom Buffer Saver", g_maxNumSavedGoomBuffers, g_numGoomBufferElements, g_saveGoomBuffers),
     m_audioBufferSaver("Audio Buffer Saver", g_maxNumSavedAudioBuffers, g_audioDataBufferLen, g_saveAudioBuffers),
     m_worker(g_audioDataBufferSize, g_goomBufferSize)
 {
@@ -193,7 +176,8 @@ CVisualizationGoom::~CVisualizationGoom()
 //-----------------------------------------------------------------------------
 bool CVisualizationGoom::Start(int iChannels, int iSamplesPerSec, int iBitsPerSample, std::string szSongName)
 {
-  if (m_started) {
+  if (m_started)
+  {
     kodi::Log(ADDON_LOG_WARNING, "Start: Already started without a stop - skipping this.");
     return true;
   }
@@ -237,8 +221,10 @@ bool CVisualizationGoom::Start(int iChannels, int iSamplesPerSec, int iBitsPerSa
 //-----------------------------------------------------------------------------
 void CVisualizationGoom::Stop()
 {
-  if (!m_started) {
+  if (!m_started)
+  {
     kodi::Log(ADDON_LOG_WARNING, "Stop: Not started - skipping this.");
+    return;
   }
   m_audioStarted = false;
   m_started = false;
@@ -281,12 +267,15 @@ void CVisualizationGoom::OnCompiledAndLinked()
 //-----------------------------------------------------------------------------
 void CVisualizationGoom::AudioData(const float* pAudioData, int iAudioDataLength, float* pFreqData, int iFreqDataLength)
 {
-  if (!m_started) {
+  if (!m_started)
+  {
     kodi::Log(ADDON_LOG_WARNING, "AudioData: Not started - skipping this.");
+    return;
   }
 
   const int copyLen = iAudioDataLength < g_audioDataBufferLen ? iAudioDataLength : g_audioDataBufferLen;
-  if (copyLen < g_audioDataBufferLen) {
+  if (copyLen < g_audioDataBufferLen)
+  {
     memset(m_audioData, 0, g_audioDataBufferSize);
   }
   int i = 0;
@@ -301,7 +290,8 @@ void CVisualizationGoom::AudioData(const float* pAudioData, int iAudioDataLength
   m_worker.AddRequest(m_audioData, m_numTimesAudioSampled);
   m_worker.AddRequest(m_audioData, m_numTimesAudioSampled);
 
-  if (!m_audioStarted) {
+  if (!m_audioStarted)
+  {
     m_audioStarted = true;
     kodi::Log(ADDON_LOG_DEBUG, "AudioData: Audio now started - Used *(%u + 0.5) as short conversion factor.", INT16_MAX);
   }
@@ -317,7 +307,8 @@ bool CVisualizationGoom::UpdateTrack(const VisTrack &track)
 }
 
 
-void CVisualizationGoom::InitQuadData() {
+void CVisualizationGoom::InitQuadData()
+{
   GLfloat x0 = m_window_xpos;
   GLfloat y0 = m_window_ypos;
   GLfloat x1 = m_window_xpos + m_window_width;
@@ -351,7 +342,8 @@ void CVisualizationGoom::InitQuadData() {
   m_vertexVBO = 0;
 }
 
-bool CVisualizationGoom::InitGLObjects() {
+bool CVisualizationGoom::InitGLObjects()
+{
   m_projModelMatrix = glm::ortho(0.0f, float(Width()), 0.0f, float(Height()));
 
   // Setup vertex attributes
@@ -370,7 +362,8 @@ bool CVisualizationGoom::InitGLObjects() {
 
   // Create texture.
   glGenTextures(1, &m_texid);
-  if (!m_texid) {
+  if (!m_texid)
+  {
     kodi::Log(ADDON_LOG_ERROR, "InitGLObjects: Could not do glGenTextures.");
     return false;
   }
@@ -389,20 +382,25 @@ bool CVisualizationGoom::InitGLObjects() {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g_tex_width, g_tex_height, 0, g_pixelFormat, GL_UNSIGNED_BYTE, 0);
   glBindTexture(GL_TEXTURE_2D, 0);
 
-  if (!g_usePixelBufferObjects) {
+  if (!g_usePixelBufferObjects)
+  {
     kodi::Log(ADDON_LOG_DEBUG, "InitGLObjects: Not using pixel buffer objects.");
-  } else {  
+  }
+  else
+  {
     kodi::Log(ADDON_LOG_DEBUG, "InitGLObjects: Using pixel buffer objects.");
     m_currentPboIndex = 0;
 
     glGenBuffers(g_numPbos, m_pboIds);
-    for (int i = 0; i < g_numPbos; i++) {
+    for (int i = 0; i < g_numPbos; i++)
+    {
       glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pboIds[i]);
       glBufferData(GL_PIXEL_UNPACK_BUFFER, g_goomBufferSize, 0, GL_STREAM_DRAW);
       glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pboIds[i]);
       glBufferData(GL_PIXEL_UNPACK_BUFFER, g_goomBufferSize, 0, GL_STREAM_DRAW);
       m_pboGoomBuffer[i] = reinterpret_cast<unsigned char*>(glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY));
-      if (!m_pboGoomBuffer[i]) {
+      if (!m_pboGoomBuffer[i])
+      {
         kodi::Log(ADDON_LOG_ERROR, "InitGLObjects: Could not do glMapBuffer for pbo %d.", i);
         return false;
       }
@@ -420,105 +418,121 @@ bool CVisualizationGoom::InitGLObjects() {
 
 void CVisualizationGoom::Render()
 {
-    if (!m_started) {
-      kodi::Log(ADDON_LOG_WARNING, "Render: Not started - skipping this.");
-    }
-    if (!m_audioStarted) {
-      kodi::Log(ADDON_LOG_DEBUG, "Render: Audio not started yet - skipping this.");
-      return;
-    }  
-    if (!m_texid) {
-      kodi::Log(ADDON_LOG_ERROR, "Render: Texture has not been initialized.");
-      return;
-    }  
+  if (!m_started)
+  {
+    kodi::Log(ADDON_LOG_WARNING, "Render: Not started - skipping this.");
+    return;
+  }
+  if (!m_audioStarted)
+  {
+    kodi::Log(ADDON_LOG_DEBUG, "Render: Audio not started yet - skipping this.");
+    return;
+  }
+  if (!m_texid)
+  {
+    kodi::Log(ADDON_LOG_ERROR, "Render: Texture has not been initialized.");
+    return;
+  }
 
-    auto dataPackagePtr = m_worker.ProcessedTryPop();
-    if (dataPackagePtr != nullptr) {
-      // kodi::Log(ADDON_LOG_DEBUG, "Render: Successfully popped buffer.");
+  auto dataPackagePtr = m_worker.ProcessedTryPop();
+  if (dataPackagePtr != nullptr)
+  {
+    // kodi::Log(ADDON_LOG_DEBUG, "Render: Successfully popped buffer.");
+    m_frameNum++;
+  }
+  else
+  {
+    // kodi::Log(ADDON_LOG_DEBUG, "Render: No processed buffers ready.");
+    if (m_worker.RequestsQueueEmpty())
+    {
+      m_worker.AddRequest(m_audioData, m_numTimesAudioSampled);
+    }
+    m_numSkippedFramesInARow++;
+    if (m_numSkippedFramesInARow <= g_maxNumSkippedFramesInARow)
+    {
+      kodi::Log(ADDON_LOG_DEBUG, "Render: No processed buffers ready - skipping this render. (m_numSkippedFramesInARow = %d.)",
+        m_numSkippedFramesInARow);
+    }
+    else
+    {
+      // kodi::Log(ADDON_LOG_DEBUG, "Render: Wait for finished processed buffer. (m_numSkippedFramesInARow = %d.)",
+      //  m_numSkippedFramesInARow);
+      dataPackagePtr = m_worker.ProcessedPop();
+      // kodi::Log(ADDON_LOG_DEBUG, "Render: Successfully popped buffer with tag %lu after wait.", dataPackagePtr->GetTag());
+      m_numSkippedFramesInARow = 0;
+      m_numBufferWaits++;
       m_frameNum++;
-    } else {  
-      // kodi::Log(ADDON_LOG_DEBUG, "Render: No processed buffers ready.");
-      if (m_worker.RequestsQueueEmpty()) {
-        m_worker.AddRequest(m_audioData, m_numTimesAudioSampled);
-      }
-      m_numSkippedFramesInARow++;
-      if (m_numSkippedFramesInARow <= g_maxNumSkippedFramesInARow) {
-        kodi::Log(ADDON_LOG_DEBUG, "Render: No processed buffers ready - skipping this render. (m_numSkippedFramesInARow = %d.)", 
-          m_numSkippedFramesInARow);
-      } else {  
-        // kodi::Log(ADDON_LOG_DEBUG, "Render: Wait for finished processed buffer. (m_numSkippedFramesInARow = %d.)", 
-        //  m_numSkippedFramesInARow);
-        dataPackagePtr = m_worker.ProcessedPop();
-        // kodi::Log(ADDON_LOG_DEBUG, "Render: Successfully popped buffer with tag %lu after wait.", dataPackagePtr->GetTag());
-        m_numSkippedFramesInARow = 0;
-        m_numBufferWaits++;
-        m_frameNum++;
-      }
     }
+  }
 
-    // Setup vertex attributes.
-    glBindVertexArray(m_vaoObject);
-      
-    // Setup texture.
-    glBindTexture(GL_TEXTURE_2D, m_texid);
-    if (dataPackagePtr != nullptr) {
-      if (!g_usePixelBufferObjects) {
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_tex_width, g_tex_height, g_pixelFormat, GL_UNSIGNED_BYTE, dataPackagePtr->GetData());
-        dataPackagePtr->SetFinishedWith();
-      } else {
-        m_currentPboIndex = (m_currentPboIndex + 1) % g_numPbos;
-        const int nextPboIndex = (m_currentPboIndex + 1) % g_numPbos;
+  // Setup vertex attributes.
+  glBindVertexArray(m_vaoObject);
 
-        // Bind to current PBO and send pixels to texture object.
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pboIds[m_currentPboIndex]);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_tex_width, g_tex_height, g_pixelFormat, GL_UNSIGNED_BYTE, 0);
+  // Setup texture.
+  glBindTexture(GL_TEXTURE_2D, m_texid);
+  if (dataPackagePtr != nullptr)
+  {
+    if (!g_usePixelBufferObjects)
+    {
+      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_tex_width, g_tex_height, g_pixelFormat, GL_UNSIGNED_BYTE, dataPackagePtr->GetData());
+      dataPackagePtr->SetFinishedWith();
+    }
+    else
+    {
+      m_currentPboIndex = (m_currentPboIndex + 1) % g_numPbos;
+      const int nextPboIndex = (m_currentPboIndex + 1) % g_numPbos;
 
-        // Bind to next PBO and update data directly on the mapped buffer.
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pboIds[nextPboIndex]);
-        memcpy(m_pboGoomBuffer[nextPboIndex], dataPackagePtr->GetData(), g_goomBufferSize);
-        dataPackagePtr->SetFinishedWith();
+      // Bind to current PBO and send pixels to texture object.
+      glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pboIds[m_currentPboIndex]);
+      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_tex_width, g_tex_height, g_pixelFormat, GL_UNSIGNED_BYTE, 0);
 
-        glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-      }
-    }  
-    
-    delete dataPackagePtr;
+      // Bind to next PBO and update data directly on the mapped buffer.
+      glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pboIds[nextPboIndex]);
+      memcpy(m_pboGoomBuffer[nextPboIndex], dataPackagePtr->GetData(), g_goomBufferSize);
+      dataPackagePtr->SetFinishedWith();
 
-    glEnable(GL_TEXTURE_2D);
-    glDisable(GL_BLEND);
-    glActiveTexture(GL_TEXTURE0);
+      glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
+      glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+    }
+  }
 
-    EnableShader();
-    glUniformMatrix4fv(m_uProjModelMatLoc, 1, GL_FALSE, glm::value_ptr(m_projModelMatrix));
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
-    DisableShader();
+  delete dataPackagePtr;
 
-    glEnable(GL_BLEND);
-    glDisable(GL_TEXTURE_2D);
-    glBindVertexArray(0);
+  glEnable(GL_TEXTURE_2D);
+  glDisable(GL_BLEND);
+  glActiveTexture(GL_TEXTURE0);
+
+  EnableShader();
+  glUniformMatrix4fv(m_uProjModelMatLoc, 1, GL_FALSE, glm::value_ptr(m_projModelMatrix));
+  glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
+  DisableShader();
+
+  glEnable(GL_BLEND);
+  glDisable(GL_TEXTURE_2D);
+  glBindVertexArray(0);
 }
 
 void CVisualizationGoom::UpdateGoomBuffer(const void* audioData, unsigned long audioTag, void* goomBuffer) 
 {
-    const char* title = nullptr;
-    if (m_currentSongName != "") {
-      title = m_currentSongName.c_str();
-      kodi::Log(ADDON_LOG_DEBUG, "UpdateGoomBuffer: Setting song title '%s'.", title);
-    }
+  const char* title = nullptr;
+  if (!m_currentSongName.empty())
+  {
+    title = m_currentSongName.c_str();
+    kodi::Log(ADDON_LOG_DEBUG, "UpdateGoomBuffer: Setting song title '%s'.", title);
+  }
 
-    goom_set_screenbuffer(m_goom, goomBuffer);
-    goom_update(m_goom, reinterpret_cast<const SamplesArray&>(audioData), 0, 0, title, (char*)"Kodi");
+  goom_set_screenbuffer(m_goom, goomBuffer);
+  goom_update(m_goom, reinterpret_cast<const SamplesArray&>(audioData), 0, 0, title, (char*)"Kodi");
 
-    m_currentSongName = "";
+  m_currentSongName = "";
 
-    m_goomBufferSaver.Save(reinterpret_cast<const unsigned char*>(goomBuffer), audioTag);
-    m_audioBufferSaver.Save(reinterpret_cast<const short*>(audioData), audioTag);
+  m_goomBufferSaver.Save(reinterpret_cast<const unsigned char*>(goomBuffer), audioTag);
+  m_audioBufferSaver.Save(reinterpret_cast<const short*>(audioData), audioTag);
 }
 
 void CVisualizationGoom::Logger(int severity, const std::string& msg)
 {
-    kodi::Log(ADDON_LOG_DEBUG, msg.c_str());
+  kodi::Log(ADDON_LOG_DEBUG, msg.c_str());
 }
 
 ADDONCREATOR(CVisualizationGoom) // Don't touch this!
