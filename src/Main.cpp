@@ -123,7 +123,7 @@ private:
   GLuint m_vertexVBO = 0;
   GLint m_uProjModelMatLoc = -1;
   GLint m_aPositionLoc = -1;
-  GLint m_aColorLoc = -1;
+  GLint m_aCoordLoc = -1;
   bool InitGLObjects();
 };
 
@@ -259,7 +259,7 @@ void CVisualizationGoom::OnCompiledAndLinked()
 {
   m_uProjModelMatLoc = glGetUniformLocation(ProgramHandle(), "u_projModelMat");
   m_aPositionLoc = glGetAttribLocation(ProgramHandle(), "in_position");
-  m_aColorLoc = glGetAttribLocation(ProgramHandle(), "in_tex_coord");
+  m_aCoordLoc = glGetAttribLocation(ProgramHandle(), "in_tex_coord");
 }
 
 //-- Audiodata ----------------------------------------------------------------
@@ -353,10 +353,10 @@ bool CVisualizationGoom::InitGLObjects()
   glBindVertexArray(m_vaoObject);
   glGenBuffers(1, &m_vertexVBO);
   glBindBuffer(GL_ARRAY_BUFFER, m_vertexVBO);
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(0, m_componentsPerVertex, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-  glVertexAttribPointer(1, m_componentsPerTexel, GL_FLOAT, GL_FALSE, 0, (GLvoid*)(m_numVertices * m_componentsPerVertex * sizeof(GLfloat)));
+  glEnableVertexAttribArray(m_aPositionLoc);
+  glEnableVertexAttribArray(m_aCoordLoc);
+  glVertexAttribPointer(m_aPositionLoc, m_componentsPerVertex, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+  glVertexAttribPointer(m_aCoordLoc, m_componentsPerTexel, GL_FLOAT, GL_FALSE, 0, (GLvoid*)(m_numVertices * m_componentsPerVertex * sizeof(GLfloat)));
   glBufferData(GL_ARRAY_BUFFER, m_numElements*sizeof(GLfloat), m_quadData, GL_STATIC_DRAW);
   glBindVertexArray(0);
 
