@@ -189,8 +189,8 @@ bool CVisualizationGoom::Start(int iChannels, int iSamplesPerSec, int iBitsPerSa
   m_currentSongName = szSongName;
   memset(m_audioData, 0, g_audioDataBufferSize);
   
-  if (!LoadShaderFiles(kodi::GetAddonPath("resources/shaders/vert.glsl"),
-                       kodi::GetAddonPath("resources/shaders/frag.glsl")))
+  if (!LoadShaderFiles(kodi::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/vert.glsl"),
+                       kodi::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/frag.glsl")))
   {
     kodi::Log(ADDON_LOG_FATAL, "Start: Failed to load GL shaders.");
     return false;
@@ -354,7 +354,7 @@ bool CVisualizationGoom::InitGLObjects()
   glGenBuffers(1, &m_vertexVBO);
   glBindBuffer(GL_ARRAY_BUFFER, m_vertexVBO);
   glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);  
+  glEnableVertexAttribArray(1);
   glVertexAttribPointer(0, m_componentsPerVertex, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
   glVertexAttribPointer(1, m_componentsPerTexel, GL_FLOAT, GL_FALSE, 0, (GLvoid*)(m_numVertices * m_componentsPerVertex * sizeof(GLfloat)));
   glBufferData(GL_ARRAY_BUFFER, m_numElements*sizeof(GLfloat), m_quadData, GL_STATIC_DRAW);
