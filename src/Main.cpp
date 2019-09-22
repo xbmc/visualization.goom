@@ -63,7 +63,7 @@ public:
 
   // kodi::gui::gl::CShaderProgram
   void OnCompiledAndLinked() override;
-  bool OnEnabled() override { return true; }
+  bool OnEnabled() override;
 
 private:
   const static int g_tex_width = GOOM_TEXTURE_WIDTH;
@@ -79,7 +79,7 @@ private:
   int m_window_xpos;
   int m_window_ypos;
 
-  PluginInfo* m_goom;
+  PluginInfo* m_goom = nullptr;
   bool m_started = false;
 
   SamplesArray m_audioData;
@@ -108,10 +108,12 @@ private:
   GLint m_componentsPerTexel;
   int m_numVertices;
   int m_numElements;
-  GLfloat* m_quadData;
+  GLfloat* m_quadData = nullptr;
   void InitQuadData();
 
+#ifdef HAS_GL
   const static bool g_usePixelBufferObjects = true;
+#endif
   GLuint m_texid = 0;
   const static int g_pixelFormat = GL_RGBA;
   const static int g_numPbos = 3;
@@ -262,6 +264,12 @@ void CVisualizationGoom::OnCompiledAndLinked()
   m_aCoordLoc = glGetAttribLocation(ProgramHandle(), "in_tex_coord");
 }
 
+bool CVisualizationGoom::OnEnabled()
+{
+  glUniformMatrix4fv(m_uProjModelMatLoc, 1, GL_FALSE, glm::value_ptr(m_projModelMatrix));
+  return true;
+}
+
 //-- Audiodata ----------------------------------------------------------------
 // Called by Kodi to pass new audio data to the vis
 //-----------------------------------------------------------------------------
@@ -306,7 +314,6 @@ bool CVisualizationGoom::UpdateTrack(const VisTrack &track)
   return true;
 }
 
-
 void CVisualizationGoom::InitQuadData()
 {
   GLfloat x0 = m_window_xpos;
@@ -315,21 +322,22 @@ void CVisualizationGoom::InitQuadData()
   GLfloat y1 = m_window_ypos + m_window_height;
   const GLfloat tempQuadData[] =
   {
-      // Vertex positions
-      x0, y0,  // bottom left
-      x0, y1,  // top left
-      x1, y0,  // bottom right
-      x1, y0,  // bottom right
-      x1, y1,  // top right
-      x0, y1,  // top left
-      // Texture coordinates
-      0.0, 1.0,
-      0.0, 0.0,
-      1.0, 1.0,
-      1.0, 1.0,
-      1.0, 0.0,
-      0.0, 0.0,
+    // Vertex positions
+    x0, y0,  // bottom left
+    x0, y1,  // top left
+    x1, y0,  // bottom right
+    x1, y0,  // bottom right
+    x1, y1,  // top right
+    x0, y1,  // top left
+    // Texture coordinates
+    0.0, 1.0,
+    0.0, 0.0,
+    1.0, 1.0,
+    1.0, 1.0,
+    1.0, 0.0,
+    0.0, 0.0,
   };
+
   m_numElements = sizeof(tempQuadData)/sizeof(GLfloat);
   m_quadData = new GLfloat[m_numElements];
   for (int i = 0; i < m_numElements; i++)
@@ -347,6 +355,7 @@ bool CVisualizationGoom::InitGLObjects()
   m_projModelMatrix = glm::ortho(0.0f, float(Width()), 0.0f, float(Height()));
 
   // Setup vertex attributes
+#ifdef HAS_GL
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glDeleteBuffers(1, &m_vertexVBO);
   glGenVertexArrays(1, &m_vaoObject);
@@ -359,6 +368,7 @@ bool CVisualizationGoom::InitGLObjects()
   glVertexAttribPointer(m_aCoordLoc, m_componentsPerTexel, GL_FLOAT, GL_FALSE, 0, (GLvoid*)(m_numVertices * m_componentsPerVertex * sizeof(GLfloat)));
   glBufferData(GL_ARRAY_BUFFER, m_numElements*sizeof(GLfloat), m_quadData, GL_STATIC_DRAW);
   glBindVertexArray(0);
+#endif
 
   // Create texture.
   glGenTextures(1, &m_texid);
@@ -374,10 +384,13 @@ bool CVisualizationGoom::InitGLObjects()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+#ifdef HAS_GL
   glGenerateMipmap(GL_TEXTURE_2D);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, g_tex_width, g_tex_height, 0, g_pixelFormat, GL_UNSIGNED_BYTE, 0);
+#endif
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, g_tex_width, g_tex_height, 0, g_pixelFormat, GL_UNSIGNED_BYTE, 0);
   glBindTexture(GL_TEXTURE_2D, 0);
 
+#ifdef HAS_GL
   if (!g_usePixelBufferObjects)
   {
     kodi::Log(ADDON_LOG_DEBUG, "InitGLObjects: Not using pixel buffer objects.");
@@ -404,6 +417,7 @@ bool CVisualizationGoom::InitGLObjects()
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   }
+#endif
 
   return true;
 }
@@ -462,18 +476,24 @@ void CVisualizationGoom::Render()
   }
 
   // Setup vertex attributes.
+#ifdef HAS_GL
   glBindVertexArray(m_vaoObject);
+#else
+  glVertexAttribPointer(m_aPositionLoc, 2, GL_FLOAT, GL_FALSE, 0, m_quadData);
+  glEnableVertexAttribArray(m_aPositionLoc);
+  glVertexAttribPointer(m_aCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, m_quadData+m_numVertices * m_componentsPerVertex);
+  glEnableVertexAttribArray(m_aCoordLoc);
+#endif
 
   // Setup texture.
+  glDisable(GL_BLEND);
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_texid);
+
   if (dataPackagePtr != nullptr)
   {
-    if (!g_usePixelBufferObjects)
-    {
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_tex_width, g_tex_height, g_pixelFormat, GL_UNSIGNED_BYTE, dataPackagePtr->GetData());
-      dataPackagePtr->SetFinishedWith();
-    }
-    else
+#ifdef HAS_GL
+    if (g_usePixelBufferObjects)
     {
       m_currentPboIndex = (m_currentPboIndex + 1) % g_numPbos;
       const int nextPboIndex = (m_currentPboIndex + 1) % g_numPbos;
@@ -485,25 +505,35 @@ void CVisualizationGoom::Render()
       // Bind to next PBO and update data directly on the mapped buffer.
       glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pboIds[nextPboIndex]);
       memcpy(m_pboGoomBuffer[nextPboIndex], dataPackagePtr->GetData(), g_goomBufferSize);
-      dataPackagePtr->SetFinishedWith();
 
       glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
       glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     }
+    else
+#endif
+    {
+      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, g_tex_width, g_tex_height, g_pixelFormat, GL_UNSIGNED_BYTE, dataPackagePtr->GetData());
+    }
   }
 
-  delete dataPackagePtr;
-
-  glDisable(GL_BLEND);
-  glActiveTexture(GL_TEXTURE0);
-
   EnableShader();
-  glUniformMatrix4fv(m_uProjModelMatLoc, 1, GL_FALSE, glm::value_ptr(m_projModelMatrix));
   glDrawArrays(GL_TRIANGLE_FAN, 0, 6);
   DisableShader();
 
   glEnable(GL_BLEND);
+
+#ifdef HAS_GL
   glBindVertexArray(0);
+#else
+  glDisableVertexAttribArray(m_aPositionLoc);
+  glDisableVertexAttribArray(m_aCoordLoc);
+#endif
+
+  if (dataPackagePtr != nullptr)
+  {
+    dataPackagePtr->SetFinishedWith();
+    delete dataPackagePtr;
+  }
 }
 
 void CVisualizationGoom::UpdateGoomBuffer(const void* audioData, unsigned long audioTag, void* goomBuffer) 
