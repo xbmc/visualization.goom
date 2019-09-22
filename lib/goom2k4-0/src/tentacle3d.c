@@ -130,7 +130,7 @@ static void tentacle_free (TentacleFXData *data) {
 	free (data->vals);
 }
 
-inline int get_rand_in_range(int n1, int n2)
+static inline int get_rand_in_range(int n1, int n2)
 {
 	const int len = n2 - n1;
 	return n1 + rand() % (len + 1);
