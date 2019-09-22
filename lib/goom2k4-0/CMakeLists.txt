@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 project(goom)
 
+if(WIN32)
+ add_definitions(-D_WIN32PC)
+endif()
+
 set(GOOM_SOURCES src/goomsl_yacc.c
                  src/goomsl_lex.c
                  src/goomsl_lex.l
