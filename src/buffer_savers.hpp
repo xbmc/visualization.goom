@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cstdio>
 #include <string>
+#include <string.h> /* memcpy */
 #include <memory>
 #include <functional>
 

@@ -208,7 +208,7 @@ goom_lines_free (GMLine ** l)
 
 #define MAX_NORMALIZED_PEAK 2000.0
 
-inline float getNormalizedData(PluginInfo *goomInfo, short data)
+static inline float getNormalizedData(PluginInfo *goomInfo, short data)
 {
 	return MAX_NORMALIZED_PEAK * (float)data / goomInfo->sound.allTimesMax;
 }

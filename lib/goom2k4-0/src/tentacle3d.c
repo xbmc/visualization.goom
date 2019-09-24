@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "v3d.h"
 #include "surf3d.h"
@@ -130,7 +131,7 @@ static void tentacle_free (TentacleFXData *data) {
 	free (data->vals);
 }
 
-inline int get_rand_in_range(int n1, int n2)
+static inline int get_rand_in_range(int n1, int n2)
 {
 	const int len = n2 - n1;
 	return n1 + rand() % (len + 1);
@@ -176,13 +177,11 @@ static inline unsigned char lighten (unsigned char value, float power)
 	}
 }
 
-static void lightencolor (int *col, float power)
+static void lightencolor (uint32_t *col, float power)
 {
-	unsigned char *color;
+	uint8_t *color;
 
-	color = (unsigned char *) col;
-	*color = lighten (*color, power);
-	color++;
+	color = (uint8_t *) col;
 	*color = lighten (*color, power);
 	color++;
 	*color = lighten (*color, power);
@@ -267,8 +266,8 @@ static void tentacle_update(PluginInfo *goomInfo, Pixel *buf, Pixel *back, int W
 	int tmp;
 	int tmp2;
 
-	int color;
-	int colorlow;
+	uint32_t color;
+	uint32_t colorlow;
 
 	float dist,dist2,rotangle;
 
@@ -317,7 +316,7 @@ static void tentacle_update(PluginInfo *goomInfo, Pixel *buf, Pixel *back, int W
 			color_num++;
 			if (color_num > NB_TENTACLE_COLORS) color_num = 0;
 			grid3d_draw (goomInfo, fx_data->grille[tmp],my_col,colorlow,dist,buf,back,W,H);
-		}	
+		}
 	}
 	else {
 		fx_data->lig = 1.05f;
