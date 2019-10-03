@@ -1,3 +1,4 @@
+#include "goom.h"
 #include "sound_tester.h"
 
 #include <stdlib.h>
@@ -11,7 +12,7 @@
 #define SPEED_MULT 0.99f
 
 
-void evaluate_sound(gint16 data[2][512], SoundInfo *info) {
+void evaluate_sound(const gint16 data[NUM_AUDIO_SAMPLES][AUDIO_SAMPLE_LEN], SoundInfo *info) {
 
 	int i;
 	float difaccel;
@@ -19,7 +20,7 @@ void evaluate_sound(gint16 data[2][512], SoundInfo *info) {
 
 	/* find the max */
 	int incvar = 0;
-	for (i = 0; i < 512; i+=2) {
+	for (i = 0; i < AUDIO_SAMPLE_LEN; i++) {
 		if (incvar < data[0][i])
 			incvar = data[0][i];
 	}
@@ -29,8 +30,8 @@ void evaluate_sound(gint16 data[2][512], SoundInfo *info) {
 
 	/* volume sonore */
 	info->volume = (float)incvar / (float)info->allTimesMax;
-	memcpy(info->samples[0],data[0],512*sizeof(short));
-	memcpy(info->samples[1],data[1],512*sizeof(short));
+	memcpy(info->samples[0], data[0], AUDIO_SAMPLE_LEN*sizeof(short));
+	memcpy(info->samples[1], data[1], AUDIO_SAMPLE_LEN*sizeof(short));
 
 	difaccel = info->accelvar;
 	info->accelvar = info->volume; /* accel entre 0 et 1 */
@@ -90,7 +91,7 @@ void evaluate_sound(gint16 data[2][512], SoundInfo *info) {
 	if (info->goom_limit>1)
 		info->goom_limit=1;
 
-	/* toute les 2 secondes : vérifier si le taux de goom est correct
+	/* toute les 2 secondes : vÃ©rifier si le taux de goom est correct
 	 * et le modifier sinon.. */
 	if (info->cycle % 64 == 0) {
 		if (info->speedvar<0.01f)

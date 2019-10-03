@@ -1,3 +1,4 @@
+#include "goom.h"
 #include "goom_plugin_info.h"
 #include "goom_fx.h"
 #include "cpu_info.h"
