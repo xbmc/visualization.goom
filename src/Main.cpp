@@ -87,6 +87,9 @@ private:
   bool m_audioStarted = false;
   unsigned long m_numTimesAudioSampled = 0;
   std::string m_currentSongName;
+  std::string m_lastSongName;
+  bool m_titleChange = false;
+  bool m_showTitleAlways = false;
 
   unsigned long m_frameNum = 0;
   const static int g_maxNumSkippedFramesInARow = 0;
@@ -310,7 +313,20 @@ bool CVisualizationGoom::UpdateTrack(const VisTrack &track)
 {
   if (m_goom)
   {
-    m_currentSongName = track.title;
+    m_lastSongName = m_currentSongName;
+    std::string artist = track.artist;
+    if (artist.empty())
+      artist = track.albumArtist;
+    std::string title;
+    if (!artist.empty())
+       m_currentSongName = artist + " - " + track.title;
+    else
+      m_currentSongName = track.title;
+
+    if (m_lastSongName != m_currentSongName)
+      m_titleChange = true;
+
+    m_showTitleAlways = kodi::GetSettingBoolean("show_title_always");
   }
   return true;
 }
@@ -539,16 +555,14 @@ void CVisualizationGoom::Render()
 void CVisualizationGoom::UpdateGoomBuffer(const void* audioData, unsigned long audioTag, void* goomBuffer) 
 {
   const char* title = nullptr;
-  if (!m_currentSongName.empty())
+  if (m_titleChange || m_showTitleAlways)
   {
     title = m_currentSongName.c_str();
-    kodi::Log(ADDON_LOG_DEBUG, "UpdateGoomBuffer: Setting song title '%s'.", title);
+    m_titleChange = false;
   }
 
   goom_set_screenbuffer(m_goom, goomBuffer);
   goom_update(m_goom, reinterpret_cast<const SamplesArray&>(audioData), 0, 0, title, (char*)"Kodi");
-
-  m_currentSongName = "";
 
   m_goomBufferSaver.Save(reinterpret_cast<const unsigned char*>(goomBuffer), audioTag);
   m_audioBufferSaver.Save(reinterpret_cast<const short*>(audioData), audioTag);
