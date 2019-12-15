@@ -25,3 +25,23 @@ msgstr ""
 msgctxt "#30001"
 msgid "If set, the title will be displayed continuously, otherwise it will only be shown briefly on change."
 msgstr ""
+
+msgctxt "#30002"
+msgid "Render quality"
+msgstr ""
+
+msgctxt "#30003"
+msgid "If the system does not do the display in a high resolution, it can be reduced."
+msgstr ""
+
+msgctxt "#30004"
+msgid "Lowest (512x256)"
+msgstr ""
+
+msgctxt "#30005"
+msgid "Lower (640x360)"
+msgstr ""
+
+msgctxt "#30006"
+msgid "Standard (1280x720)"
+msgstr ""

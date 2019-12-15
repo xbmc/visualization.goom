@@ -7,6 +7,17 @@
           <default>false</default>
           <control type="toggle" />
         </setting>
+        <setting id="quality" type="integer" label="30002" help="30003">
+          <default>2</default>
+          <constraints>
+            <options>
+              <option label="30004">0</option>
+              <option label="30005">1</option>
+              <option label="30006">2</option>
+            </options>
+          </constraints>
+          <control type="spinner" format="string" />
+        </setting>
       </group>
     </category>
   </section>
