@@ -18,20 +18,17 @@ else()
   add_definitions(${OPENGLES_DEFINITIONS})
 endif()
 
-add_subdirectory(lib/goom2k4-0)
+add_subdirectory(lib/goom)
 
 include_directories(${includes}
                     ${GLM_INCLUDE_DIR}
                     ${KODI_INCLUDE_DIR}/.. # Hack way with "/..", need bigger Kodi cmake rework to match right include ways (becomes done in future)
-                    ${PROJECT_SOURCE_DIR}/lib/goom2k4-0/src)
+                    ${PROJECT_SOURCE_DIR}/lib/goom/src)
 
-set(GOOM_SOURCES src/Main.cpp
-                 src/workers.cpp)
+set(GOOM_SOURCES src/Main.cpp)
 
-set(GOOM_HEADERS src/buffer_savers.hpp
-                 src/goom_config.h
-                 src/tsqueue.hpp
-                 src/workers.hpp)
+set(GOOM_HEADERS src/CircularBuffer.h
+                 src/Main.h)
 
 list(APPEND DEPLIBS goom)
 
