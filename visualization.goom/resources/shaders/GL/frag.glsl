@@ -6,5 +6,5 @@ out vec4 color;
 
 void main()
 {
-  color = texture(tex, vs_tex_coord);
+  color = vec4(texture(tex, vs_tex_coord).rgb, 1.0);
 }
