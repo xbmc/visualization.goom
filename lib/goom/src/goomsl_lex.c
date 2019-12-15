@@ -1702,7 +1702,11 @@ extern int isatty (int );
         b->yy_bs_column = 0;
     }
 
+#ifdef _WIN32PC
+        b->yy_is_interactive = file ? (isatty( _fileno(file) ) > 0) : 0;
+#else
         b->yy_is_interactive = file ? (isatty( fileno(file) ) > 0) : 0;
+#endif
     
 	errno = oerrno;
 }
