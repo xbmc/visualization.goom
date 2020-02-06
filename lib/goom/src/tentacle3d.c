@@ -11,19 +11,15 @@
 
 #define D 256.0f
 
-#define nbgrid 6
-#define num_x 10
-#define num_z 10
-#define num_x_mod 3
-#define num_z_mod 3
-#define x_increment 100
-#define y_increment 100
-#define z_increment 100
+#define nbgrid 5
+#define y_increment 10
 #define y_inc_mod 10
-#define x_width num_x * x_increment
-#define z_width num_z * z_increment
-#define x_width_mod 10
-#define z_width_mod 10
+#define num_x 15
+#define num_z 45
+#define tentacle_offset_x 85
+#define tentacle_mod_x 10
+#define tentacle_offset_z 35
+#define tentacle_mod_z 20
 
 typedef struct _TENTACLE_FX_DATA {
 	PluginParam enabled_bp;
@@ -33,7 +29,8 @@ typedef struct _TENTACLE_FX_DATA {
 	grid3d *grille[nbgrid];
 	float *vals;
 
-#define NB_TENTACLE_COLORS 5
+#define NB_TENTACLE_COLORS 100
+#define NUM_COLORS_IN_GROUP (NB_TENTACLE_COLORS/5)
 	int colors[NB_TENTACLE_COLORS];
 
 	int col;
@@ -54,6 +51,7 @@ static void tentacle_new (TentacleFXData *data);
 static void tentacle_update(PluginInfo *goomInfo, Pixel *buf, Pixel *back, int W, int H,
                      gint16 data[NUM_AUDIO_SAMPLES][AUDIO_SAMPLE_LEN], float, int drawit, TentacleFXData *fx_data);
 static void tentacle_free (TentacleFXData *data);
+static void init_colors(uint32_t *colors);
 
 /* 
  * VisualFX wrapper for the tentacles
@@ -80,11 +78,7 @@ static void tentacle_fx_init(VisualFX *_this, PluginInfo *info) {
 	
 	data->rotation = 0;
 	data->lock = 0;
-	data->colors[0] = (0x18<<(ROUGE*8))|(0x4c<<(VERT*8))|(0x2f<<(BLEU*8));
-	data->colors[1] = (0x48<<(ROUGE*8))|(0x2c<<(VERT*8))|(0x6f<<(BLEU*8));
-	data->colors[2] = (0x58<<(ROUGE*8))|(0x3c<<(VERT*8))|(0x0f<<(BLEU*8));
-	data->colors[3] = (0x87<<(ROUGE*8))|(0x55<<(VERT*8))|(0x74<<(BLEU*8));
-	data->colors[4] = (0x97<<(ROUGE*8))|(0x75<<(VERT*8))|(0x94<<(BLEU*8));
+	init_colors(data->colors);
 	tentacle_new(data);
 
 	_this->params = &data->params;
@@ -103,8 +97,8 @@ static void tentacle_fx_apply(VisualFX *_this, Pixel *src, Pixel *dest, PluginIn
 }
 
 static void tentacle_fx_free(VisualFX *_this) {
-       TentacleFXData *data = (TentacleFXData*)_this->fx_data;
-       free(data->params.params);
+	TentacleFXData *data = (TentacleFXData*)_this->fx_data;
+	free(data->params.params);
 	tentacle_free(data);
 	free(_this->fx_data);
 }
@@ -133,8 +127,8 @@ static void tentacle_free (TentacleFXData *data) {
 
 static inline int get_rand_in_range(int n1, int n2)
 {
-	const int len = n2 - n1;
-	return n1 + rand() % (len + 1);
+	const int range_len = n2 - n1 + 1;
+	return n1 + rand() % range_len;
 }
 
 static void tentacle_new (TentacleFXData *data) {
@@ -143,18 +137,16 @@ static void tentacle_new (TentacleFXData *data) {
 
 	/* Start at bottom of grid, going up by 'y_increment' */
 	float y = -0.5*(nbgrid * y_increment);
-	for (int tmp=0;tmp<nbgrid;tmp++) {
-		const int x_size = x_width + get_rand_in_range(-x_width_mod/2, x_width_mod/2);
-		const int z_size = z_width + get_rand_in_range(-z_width_mod/2, z_width_mod/2);
+	for (int tmp=0; tmp < nbgrid; tmp++) {
+		const int x = tentacle_offset_x + get_rand_in_range(-tentacle_mod_x/2, tentacle_mod_x/2);
+		const int z = tentacle_offset_z + get_rand_in_range(-tentacle_mod_z/2, tentacle_mod_z/2);
 
-		center.z = z_size;
 		center.y = y + get_rand_in_range(-y_inc_mod/2, y_inc_mod/2);
-
-                const int x_def = num_x + get_rand_in_range(-num_x_mod/2, num_x_mod/2);
-                const int z_def = num_z + get_rand_in_range(-num_z_mod/2, num_z_mod/2);
-
-		data->grille[tmp] = grid3d_new(x_size, x_def, z_size, z_def, center);
-
+		center.z = z;
+		
+		data->grille[tmp] = grid3d_new (x, num_x + get_rand_in_range(-4, 4), 
+										z, num_z + get_rand_in_range(-6, 6), center);
+		
 		y += y_increment;
 	}
 }
@@ -177,11 +169,20 @@ static inline unsigned char lighten (unsigned char value, float power)
 	}
 }
 
+static void init_colors(uint32_t *colors)
+{
+  for (int i=0; i < NB_TENTACLE_COLORS; i++) {
+   	const uint8_t red = get_rand_in_range(20, 90);
+   	const uint8_t green = get_rand_in_range(20, 90);
+   	const uint8_t blue = get_rand_in_range(20, 90);
+   	colors[i] = (red<<(ROUGE*8))|(green<<(VERT*8))|(blue<<(BLEU*8));
+  }
+}
+
 static void lightencolor (uint32_t *col, float power)
 {
-	uint8_t *color;
+	uint8_t *color = (uint8_t *) col;
 
-	color = (uint8_t *) col;
 	*color = lighten (*color, power);
 	color++;
 	*color = lighten (*color, power);
@@ -194,10 +195,10 @@ static void lightencolor (uint32_t *col, float power)
 /* retourne x>>s , en testant le signe de x */
 #define ShiftRight(_x,_s) ((_x<0) ? -(-_x>>_s) : (_x>>_s))
 
-static int evolutecolor (unsigned int src,unsigned int dest,
-                         unsigned int mask, unsigned int incr) {
+static int evolvecolor (unsigned int src,unsigned int dest,
+                        unsigned int mask, unsigned int incr) {
 	
-	int color = src & (~mask);
+	const int color = src & (~mask);
 	src &= mask;
 	dest &= mask;
 
@@ -212,8 +213,6 @@ static int evolutecolor (unsigned int src,unsigned int dest,
 
 static void pretty_move (PluginInfo *goomInfo, float cycle, float *dist, float *dist2, float *rotangle, TentacleFXData *fx_data) {
 
-	float tmp;
-
 	/* many magic numbers here... I don't really like that. */
 	if (fx_data->happens)
 		fx_data->happens -= 1;
@@ -223,7 +222,7 @@ static void pretty_move (PluginInfo *goomInfo, float cycle, float *dist, float *
 	}
 	else fx_data->lock --;
 
-	tmp = fx_data->happens?8.0f:0;
+	float tmp = fx_data->happens?8.0f:0;
 	*dist2 = fx_data->distt2 = (tmp + 15.0f*fx_data->distt2)/16.0f;
 
 	tmp = 30+D-90.0f*(1.0f+sin(cycle*19/20));
@@ -260,15 +259,27 @@ static void pretty_move (PluginInfo *goomInfo, float cycle, float *dist, float *
 		*rotangle = fx_data->rot = (tmp + 15.0f*fx_data->rot) / 16.0f;
 }
 
+static inline uint32_t color_multiply(uint32_t col1, uint32_t col2)
+{
+	uint8_t *color1 = (uint8_t *) &col1;
+	uint8_t *color2 = (uint8_t *) &col2;
+  uint32_t col;
+	uint8_t *color = (uint8_t *) &col;
+
+	*color = (*color1) * (*color2) / 256;
+	color++; color1++; color2++;
+	*color = (*color1) * (*color2) / 256;
+	color++; color1++; color2++;
+	*color = (*color1) * (*color2) / 256;
+	color++; color1++; color2++;
+	*color = (*color1) * (*color2) / 256;
+
+  return col;
+}
+
 static void tentacle_update(PluginInfo *goomInfo, Pixel *buf, Pixel *back, int W, int H,
                      gint16 data[NUM_AUDIO_SAMPLES][AUDIO_SAMPLE_LEN], float rapport, int drawit, TentacleFXData *fx_data) {
 	
-	int tmp;
-	int tmp2;
-
-	uint32_t color;
-	uint32_t colorlow;
-
 	float dist,dist2,rotangle;
 
 	if ((!drawit) && (fx_data->ligs>0.0f))
@@ -282,14 +293,12 @@ static void tentacle_update(PluginInfo *goomInfo, Pixel *buf, Pixel *back, int W
 		if ((fx_data->lig<6.3f)&&(goom_irand(goomInfo->gRandom,30)==0))
 			fx_data->dstcol=goom_irand(goomInfo->gRandom,NB_TENTACLE_COLORS);
 
-		fx_data->col = evolutecolor(fx_data->col,fx_data->colors[fx_data->dstcol],0xff,0x01);
-		fx_data->col = evolutecolor(fx_data->col,fx_data->colors[fx_data->dstcol],0xff00,0x0100);
-		fx_data->col = evolutecolor(fx_data->col,fx_data->colors[fx_data->dstcol],0xff0000,0x010000);
-		fx_data->col = evolutecolor(fx_data->col,fx_data->colors[fx_data->dstcol],0xff000000,0x01000000);
-		fx_data->col = evolutecolor(fx_data->col,fx_data->colors[fx_data->dstcol],0xf0000000,0x11000000);
-
-		color = fx_data->col;
-		colorlow = fx_data->col;
+		fx_data->col = evolvecolor(fx_data->col,fx_data->colors[fx_data->dstcol],0xff,0x01);
+		fx_data->col = evolvecolor(fx_data->col,fx_data->colors[fx_data->dstcol],0xff00,0x0100);
+		fx_data->col = evolvecolor(fx_data->col,fx_data->colors[fx_data->dstcol],0xff0000,0x010000);
+		fx_data->col = evolvecolor(fx_data->col,fx_data->colors[fx_data->dstcol],0xff000000,0x01000000);
+		uint32_t color = fx_data->col;
+		uint32_t colorlow = fx_data->col;
 
 		lightencolor(&color,fx_data->lig * 2.0f + 2.0f);
 		lightencolor(&colorlow,(fx_data->lig/3.0f)+0.67f);
@@ -301,8 +310,8 @@ static void tentacle_update(PluginInfo *goomInfo, Pixel *buf, Pixel *back, int W
 
 		pretty_move (goomInfo, fx_data->cycle, &dist, &dist2, &rotangle, fx_data);
 
-		for (tmp=0;tmp<nbgrid;tmp++) {
-			for (tmp2=0;tmp2<num_x;tmp2++) {
+		for (int tmp=0;tmp<nbgrid;tmp++) {
+			for (int tmp2=0;tmp2<num_x;tmp2++) {
 				const float val = (float)(ShiftRight(data[0][goom_irand(goomInfo->gRandom,AUDIO_SAMPLE_LEN-1)],10)) * rapport;
 				fx_data->vals[tmp2] = val;
 			}
@@ -310,12 +319,21 @@ static void tentacle_update(PluginInfo *goomInfo, Pixel *buf, Pixel *back, int W
 			grid3d_update (fx_data->grille[tmp], rotangle, fx_data->vals, dist2);
 		}
 		fx_data->cycle+=0.01f;
+
+		int tentacle_color = fx_data->colors[0] * color;
+		int tentacle_colorlow = fx_data->colors[0] * colorlow;
 		int color_num = 0;
-		for (tmp=0;tmp<nbgrid;tmp++) {
-                   	int my_col = fx_data->colors[color_num] * color;
-			color_num++;
-			if (color_num > NB_TENTACLE_COLORS) color_num = 0;
-			grid3d_draw (goomInfo, fx_data->grille[tmp],my_col,colorlow,dist,buf,back,W,H);
+		int num_colors_in_row = 0;
+		for (int tmp=0;tmp<nbgrid;tmp++) {
+			if (num_colors_in_row >= NUM_COLORS_IN_GROUP) {
+				tentacle_color = color_multiply(fx_data->colors[color_num], color);
+				tentacle_colorlow = color_multiply(fx_data->colors[color_num], colorlow);
+				color_num++;
+				if (color_num >= NB_TENTACLE_COLORS) color_num = 0;
+				num_colors_in_row = 0;
+			}
+			num_colors_in_row++;
+			grid3d_draw (goomInfo, fx_data->grille[tmp],tentacle_color,tentacle_colorlow,dist,buf,back,W,H);
 		}
 	}
 	else {
