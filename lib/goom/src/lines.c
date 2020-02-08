@@ -206,12 +206,12 @@ goom_lines_free (GMLine ** l)
 }
 
 
-#define MAX_NORMALIZED_PEAK 2000.0
+// This factor gives width to the audio samples lines. 20000 seems pleasing.
+#define MAX_NORMALIZED_PEAK 20000.0
 
 static inline float getNormalizedData(PluginInfo *goomInfo, short data)
 {
-	return data; // Hack, without are the lines not flushing
-//	return MAX_NORMALIZED_PEAK * (float)data / goomInfo->sound.allTimesMax;
+	return MAX_NORMALIZED_PEAK * (float)data / goomInfo->sound.allTimesMax;
 }
 
 void goom_lines_draw (PluginInfo *goomInfo, GMLine *line, const gint16 data[AUDIO_SAMPLE_LEN], Pixel *p)
