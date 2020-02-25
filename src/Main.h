@@ -93,7 +93,8 @@ private:
   GLfloat* m_quadData = nullptr;
 
 #ifdef HAS_GL
-  const static bool g_usePixelBufferObjects = false; // 'true' is supposed to give better performance but it's not obvious.
+  bool m_usePixelBufferObjects = false; // 'true' is supposed to give better performance but it's not obvious.
+                                        // And when 'true', there may be issues with screen refreshes when changing windows in Kodi.
 #endif
   GLuint m_textureId = 0;
   const static int g_numPbos = 3;

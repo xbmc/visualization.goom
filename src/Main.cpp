@@ -45,6 +45,10 @@ CVisualizationGoom::CVisualizationGoom()
 
   m_goomBufferSize = m_tex_width * m_tex_height * sizeof(uint32_t);
 
+#ifdef HAS_GL
+  m_usePixelBufferObjects = kodi::GetSettingBoolean("use_pixel_buffer_objects");
+#endif
+
   m_window_width = Width();
   m_window_height = Height();
   m_window_xpos = X();
@@ -236,7 +240,7 @@ void CVisualizationGoom::Render()
     m_activeQueue.pop();
 
 #ifdef HAS_GL
-    if (g_usePixelBufferObjects)
+    if (m_usePixelBufferObjects)
     {
       m_currentPboIndex = (m_currentPboIndex + 1) % g_numPbos;
       const int nextPboIndex = (m_currentPboIndex + 1) % g_numPbos;
@@ -439,7 +443,7 @@ bool CVisualizationGoom::InitGLObjects()
   glBindTexture(GL_TEXTURE_2D, 0);
 
 #ifdef HAS_GL
-  if (!g_usePixelBufferObjects)
+  if (!m_usePixelBufferObjects)
   {
     kodi::Log(ADDON_LOG_NOTICE, "InitGLObjects: Not using pixel buffer objects.");
   }
