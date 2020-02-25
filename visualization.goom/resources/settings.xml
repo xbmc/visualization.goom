@@ -18,6 +18,10 @@
           </constraints>
           <control type="spinner" format="string" />
         </setting>
+        <setting id="use_pixel_buffer_objects" type="boolean" label="30007" help="30008">
+          <default>false</default>
+          <control type="toggle" />
+        </setting>
       </group>
     </category>
   </section>
