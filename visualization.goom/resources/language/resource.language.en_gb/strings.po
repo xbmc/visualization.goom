@@ -45,3 +45,11 @@ msgstr ""
 msgctxt "#30006"
 msgid "Standard (1280x720)"
 msgstr ""
+
+msgctxt "#30007"
+msgid "Use OpenGL Pixel Buffer Objects"
+msgstr ""
+
+msgctxt "#30008"
+msgid "If set, then OpenGL will use a faster pixel data transfer option for the Goom window."
+msgstr ""
