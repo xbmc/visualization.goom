@@ -93,7 +93,8 @@ private:
   GLfloat* m_quadData = nullptr;
 
 #ifdef HAS_GL
-  const static bool g_usePixelBufferObjects = false; // Currently unused, during view change it shortly looks bad with it
+  bool m_usePixelBufferObjects = false; // 'true' is supposed to give better performance but it's not obvious.
+                                        // And when 'true', there may be issues with screen refreshes when changing windows in Kodi.
 #endif
   GLuint m_textureId = 0;
   const static int g_numPbos = 3;
@@ -111,7 +112,8 @@ private:
   PluginInfo* m_goom = nullptr;
 
   // Audio buffer storage
-  circular_buffer<float> m_buffer = 16384;
+  const static size_t g_circular_buffer_size = 16*NUM_AUDIO_SAMPLES*AUDIO_SAMPLE_LEN;
+  circular_buffer<float> m_buffer = g_circular_buffer_size;
 
   // Goom process thread handles
   bool m_threadExit = false;
