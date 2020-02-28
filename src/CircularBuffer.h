@@ -1,5 +1,5 @@
 /*
- *      Copyright (C) 2019 Team Kodi
+ *      Copyright (C) 2019-2020 Team Kodi
  *
  *  This Program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
