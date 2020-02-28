@@ -20,6 +20,11 @@
         </setting>
         <setting id="use_pixel_buffer_objects" type="boolean" label="30007" help="30008">
           <default>false</default>
+          <dependencies>
+            <dependency type="visible">
+              <condition on="property" name="IsDefined">HAS_GL</condition>
+            </dependency>
+          </dependencies>
           <control type="toggle" />
         </setting>
       </group>
