@@ -52,3 +52,4 @@ set(GOOM_HEADERS src/goom.h
 
 add_library(goom STATIC ${GOOM_SOURCES} ${GOOM_HEADERS})
 set_property(TARGET goom PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET goom PROPERTY C_STANDARD 11)
