@@ -20,6 +20,7 @@
  */
 
 #include "Main.h"
+#include "AudioData.h"
 
 CVisualizationGoom::CVisualizationGoom()
 {
@@ -43,7 +44,8 @@ CVisualizationGoom::CVisualizationGoom()
     break;
   }
 
-  m_goomBufferSize = m_tex_width * m_tex_height * sizeof(uint32_t);
+  m_goomBufferLen = m_tex_width * m_tex_height;
+  m_goomBufferSize = m_goomBufferLen * sizeof(uint32_t);
 
 #ifdef HAS_GL
   m_usePixelBufferObjects = kodi::GetSettingBoolean("use_pixel_buffer_objects");
@@ -80,12 +82,13 @@ bool CVisualizationGoom::Start(int iChannels, int iSamplesPerSec, int iBitsPerSa
   }
 
   m_channels = iChannels;
+  m_audioBufferLen = m_channels * AUDIO_SAMPLE_LEN;
   m_currentSongName = szSongName;
   m_titleChange = true;
 
   // Make one init frame in black
-  std::shared_ptr<uint32_t> sp(new uint32_t[m_tex_width * m_tex_height], std::default_delete<uint32_t[]>());
-  memset(sp.get(), 0, m_tex_width * m_tex_height * sizeof(uint32_t));
+  std::shared_ptr<uint32_t> sp(new uint32_t[m_goomBufferLen], std::default_delete<uint32_t[]>());
+  memset(sp.get(), 0, m_goomBufferSize);
   m_activeQueue.push(sp);
 
   // Init GL parts
@@ -173,15 +176,17 @@ void CVisualizationGoom::AudioData(const float* pAudioData, int iAudioDataLength
   }
 
   std::unique_lock<std::mutex> lock(m_mutex);
-
   if (m_buffer.data_available() >= g_circular_buffer_size)
+  {
+    AudioDataQueueTooBig();
     return;
+  }  
 
   m_buffer.write(pAudioData, iAudioDataLength);
   m_wait.notify_one();
 }
 
-bool CVisualizationGoom::UpdateTrack(const VisTrack &track)
+bool CVisualizationGoom::UpdateTrack(const VisTrack& track)
 {
   if (m_goom)
   {
@@ -234,11 +239,10 @@ void CVisualizationGoom::Render()
   glDisable(GL_BLEND);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_textureId);
-  if (!m_activeQueue.empty())
-  {
-    std::shared_ptr<uint32_t> pixels = m_activeQueue.front();
-    m_activeQueue.pop();
 
+  std::shared_ptr<uint32_t> pixels = GetNextActivePixels();
+  if (pixels != nullptr) 
+  {
 #ifdef HAS_GL
     if (m_usePixelBufferObjects)
     {
@@ -251,7 +255,7 @@ void CVisualizationGoom::Render()
 
       // Bind to next PBO and update data directly on the mapped buffer.
       glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pboIds[nextPboIndex]);
-      std::memcpy(m_pboGoomBuffer[nextPboIndex], pixels.get(), sizeof(uint32_t) * m_tex_width * m_tex_height);
+      std::memcpy(m_pboGoomBuffer[nextPboIndex], pixels.get(), m_goomBufferSize);
 
       glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
       glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
@@ -262,7 +266,7 @@ void CVisualizationGoom::Render()
       glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_tex_width, m_tex_height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.get());
     }
 
-    m_storedQueue.push(pixels);
+    PushUsedPixels(pixels);
   }
 
   EnableShader();
@@ -279,34 +283,25 @@ void CVisualizationGoom::Render()
 #endif
 }
 
-static inline int16_t FloatToInt16(float f)
+inline std::shared_ptr<uint32_t> CVisualizationGoom::GetNextActivePixels()
 {
-  if (f >= 1.0f)
-    return INT16_MAX;
-  else if (f < -1.0f)
-    return -INT16_MAX;
-  else
-    return static_cast<int16_t>((f * static_cast<float>(INT16_MAX)));
+  std::shared_ptr<uint32_t> pixels(nullptr);
+  std::lock_guard<std::mutex> lk(m_mutex);
+  if (m_activeQueue.empty()) 
+  {
+    NoActiveBufferAvailable();
+  } else
+  {
+    pixels = m_activeQueue.front();
+    m_activeQueue.pop();
+  }
+  return pixels;
 }
 
-bool CVisualizationGoom::FillBuffer(int16_t* data)
+inline void CVisualizationGoom::PushUsedPixels(std::shared_ptr<uint32_t> pixels)
 {
-  if (m_buffer.data_available() < AUDIO_SAMPLE_LEN * m_channels)
-    return false;
-
-  float floatData[NUM_AUDIO_SAMPLES*AUDIO_SAMPLE_LEN];
-  unsigned read = m_buffer.read(floatData, AUDIO_SAMPLE_LEN * m_channels);
-
-  int ipos = 0;
-  int fpos = 0;
-  while (ipos < AUDIO_SAMPLE_LEN)
-  {
-    data[ipos] = FloatToInt16(floatData[fpos++]);
-    data[AUDIO_SAMPLE_LEN + ipos] = m_channels == 1 ? data[ipos] : FloatToInt16(floatData[fpos++]);
-    ipos++;
-  }
-
-  return true;
+  std::lock_guard<std::mutex> lk(m_mutex);
+  m_storedQueue.push(pixels);
 }
 
 void CVisualizationGoom::Process()
@@ -318,35 +313,55 @@ void CVisualizationGoom::Process()
     return;
   }
 
-  int16_t audioData[NUM_AUDIO_SAMPLES][AUDIO_SAMPLE_LEN];
+  float floatAudioData[m_audioBufferLen];
   const char* title = nullptr;
+  unsigned long buffNum = 0;
 
-  while (!m_threadExit)
+  while (true)
   {
-    bool bExit;
+    std::unique_lock<std::mutex> lk(m_mutex);
+    if (m_threadExit) 
     {
-      std::unique_lock<std::mutex> lock(m_mutex);
-      if (!m_threadExit && FillBuffer(reinterpret_cast<int16_t*>(audioData)) != true)
-        m_wait.wait(lock);
-
-      if (m_titleChange || m_showTitleAlways)
-      {
-        title = m_currentSongName.c_str();
-        m_titleChange = false;
-      }
-      else
-        title = nullptr;
-
-      bExit = m_threadExit;
-    }
-
-    if (bExit)
       break;
-
-    if (m_activeQueue.size() > 10)
+    }  
+    if (m_buffer.data_available() < m_audioBufferLen) {
+      m_wait.wait(lk);
+    }  
+    unsigned read = m_buffer.read(floatAudioData, m_audioBufferLen);
+    if (read != m_audioBufferLen)
+    {
+      kodi::Log(ADDON_LOG_WARNING, "Process: Read audio data %u != %d = expected audio data length - skipping this.", read, m_audioBufferLen);
+      SkippedAudioData();
       continue;
+    }
+    lk.unlock();
+
+    if (m_titleChange || m_showTitleAlways)
+    {
+      title = m_currentSongName.c_str();
+      m_titleChange = false;
+    }
+    else 
+    {
+      title = nullptr;
+    }  
+
+    if (m_threadExit) 
+    {
+      break;
+    }  
+
+    lk.lock();
+    if (m_activeQueue.size() > g_maxActiveQueueLength) 
+    {
+      // Too far behind, skip this audio data.
+      SkippedAudioData();
+      continue;
+    }
+    lk.unlock();
 
     std::shared_ptr<uint32_t> pixels;
+    lk.lock();
     if (!m_storedQueue.empty())
     {
       pixels = m_storedQueue.front();
@@ -354,16 +369,29 @@ void CVisualizationGoom::Process()
     }
     else
     {
-      std::shared_ptr<uint32_t> sp(new uint32_t[m_tex_width * m_tex_height], std::default_delete<uint32_t[]>());
+      std::shared_ptr<uint32_t> sp(new uint32_t[m_goomBufferLen], std::default_delete<uint32_t[]>());
       pixels = sp;
     }
+    lk.unlock();
 
-    goom_set_screenbuffer(m_goom, pixels.get());
-    goom_update(m_goom, audioData, 0, 0.0f, title, "Kodi");
+    UpdateGoomBuffer(title, floatAudioData, pixels.get());
+    buffNum++;
+
+    lk.lock();
     m_activeQueue.push(pixels);
+    lk.unlock();
   }
 
   goom_close(m_goom);
+}
+
+void CVisualizationGoom::UpdateGoomBuffer(
+  const char* title, const float floatAudioData[], uint32_t* pixels) 
+{
+  static int16_t audioData[NUM_AUDIO_SAMPLES][AUDIO_SAMPLE_LEN];
+  FillAudioDataBuffer(audioData, floatAudioData, m_channels);
+  goom_set_screenbuffer(m_goom, pixels);
+  goom_update(m_goom, audioData, 0, 0.0f, title, "Kodi");
 }
 
 void CVisualizationGoom::InitQuadData()

@@ -65,15 +65,25 @@ public:
   void OnCompiledAndLinked() override;
   bool OnEnabled() override;
 
+protected:  
+  virtual void NoActiveBufferAvailable() {}
+  virtual void AudioDataQueueTooBig() {}
+  virtual void SkippedAudioData() {}
+  virtual void UpdateGoomBuffer(
+    const char* title, const float floatAudioData[], uint32_t* pixels);
+  int m_goomBufferLen;
+  int m_audioBufferLen;
+
 private:
   void Process();
-  bool FillBuffer(int16_t* data);
   bool InitGLObjects();
   void InitQuadData();
+  std::shared_ptr<uint32_t> GetNextActivePixels();
+  void PushUsedPixels(std::shared_ptr<uint32_t> pixels);
 
   int m_tex_width = GOOM_TEXTURE_WIDTH;
   int m_tex_height = GOOM_TEXTURE_HEIGHT;
-  int m_goomBufferSize = GOOM_TEXTURE_WIDTH * GOOM_TEXTURE_HEIGHT * sizeof(uint32_t);
+  size_t m_goomBufferSize;
 
   int m_window_width;
   int m_window_height;
@@ -123,6 +133,7 @@ private:
 
   // Screen frames storage, m_activeQueue for next view and m_storedQueue to
   // use on next goom round become active again.
+  static constexpr size_t g_maxActiveQueueLength = 20;
   std::queue<std::shared_ptr<uint32_t>> m_activeQueue;
   std::queue<std::shared_ptr<uint32_t>> m_storedQueue;
 
