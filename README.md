@@ -2,6 +2,7 @@
 
 This is a [Kodi](http://kodi.tv) visualization addon.
 
+[![License: GPL-2.0-or-later](https://img.shields.io/badge/License-GPL%20v2+-blue.svg)](LICENSE.md)
 [![Build Status](https://travis-ci.org/xbmc/visualization.goom.svg?branch=master)](https://travis-ci.org/xbmc/visualization.goom)
 [![Build Status](https://dev.azure.com/teamkodi/binary-addons/_apis/build/status/xbmc.visualization.goom?branchName=Matrix)](https://dev.azure.com/teamkodi/binary-addons/_build/latest?definitionId=38&branchName=Matrix)
 
