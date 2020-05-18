@@ -432,11 +432,11 @@ bool CVisualizationGoom::InitGLObjects()
 #ifdef HAS_GL
   if (!m_usePixelBufferObjects)
   {
-    kodi::Log(ADDON_LOG_NOTICE, "InitGLObjects: Not using pixel buffer objects.");
+    kodi::Log(ADDON_LOG_INFO, "InitGLObjects: Not using pixel buffer objects.");
   }
   else
   {
-    kodi::Log(ADDON_LOG_NOTICE, "InitGLObjects: Using pixel buffer objects.");
+    kodi::Log(ADDON_LOG_INFO, "InitGLObjects: Using pixel buffer objects.");
     m_currentPboIndex = 0;
 
     glGenBuffers(g_numPbos, m_pboIds);
