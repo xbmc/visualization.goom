@@ -9,8 +9,10 @@
     point="xbmc.player.musicviz"
     library_@PLATFORM@="@LIBRARY_FILENAME@"/>
   <extension point="xbmc.addon.metadata">
+    <summary lang="de_DE">Goom 2k4 Visualisierung</summary>
     <summary lang="en_GB">Goom 2k4 Visualization</summary>
-    <description lang="en_GB">The Goom 2k4 visualization supports effects like Tentacles, Flash, Stars, Fireworks, Waves, Blurs and Glows and includes a large number of trippy hypnotic effects that dance, swirl and pop with the music</description>
+    <description lang="de_DE">Die Goom 2k4-Visualisierung unterstützt Effekte wie Tentakel, Blitz, Sterne, Feuerwerk, Wellen, Unschärfen und Glühen und enthält eine große Anzahl trippiger hypnotischer Effekte, die mit der Musik tanzen, wirbeln und knallen.</description>
+    <description lang="en_GB">The Goom 2k4 visualization supports effects like Tentacles, Flash, Stars, Fireworks, Waves, Blurs and Glows and includes a large number of trippy hypnotic effects that dance, swirl and pop with the music,</description>
     <platform>@PLATFORM@</platform>
     <license>GPL-2.0</license>
     <source>https://github.com/xbmc/visualization.goom</source>
