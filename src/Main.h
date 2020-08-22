@@ -46,7 +46,7 @@ public:
   bool IsDirty() override;
   void Render() override;
   void AudioData(const float* audioData, int audioDataLength, float* freqData, int freqDataLength) override;
-  bool UpdateTrack(const VisTrack &track) override;
+  bool UpdateTrack(const kodi::addon::VisualizationTrack& track) override;
 
   // kodi::gui::gl::CShaderProgram
   void OnCompiledAndLinked() override;
