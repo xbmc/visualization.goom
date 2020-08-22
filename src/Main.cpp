@@ -170,23 +170,21 @@ void CVisualizationGoom::AudioData(const float* pAudioData, int iAudioDataLength
 
 bool CVisualizationGoom::UpdateTrack(const kodi::addon::VisualizationTrack& track)
 {
-  if (m_goom)
-  {
-    m_lastSongName = m_currentSongName;
-    std::string artist = track.GetArtist();
-    if (artist.empty())
-      artist = track.GetAlbumArtist();
-    std::string title;
-    if (!artist.empty())
-       m_currentSongName = artist + " - " + track.GetTitle();
-    else
-      m_currentSongName = track.GetTitle();
+  m_lastSongName = m_currentSongName;
+  std::string artist = track.GetArtist();
+  if (artist.empty())
+    artist = track.GetAlbumArtist();
+  std::string title;
+  if (!artist.empty())
+      m_currentSongName = artist + " - " + track.GetTitle();
+  else
+    m_currentSongName = track.GetTitle();
 
-    if (m_lastSongName != m_currentSongName)
-      m_titleChange = true;
+  if (m_lastSongName != m_currentSongName)
+    m_titleChange = true;
 
-    m_showTitleAlways = kodi::GetSettingBoolean("show_title_always");
-  }
+  m_showTitleAlways = kodi::GetSettingBoolean("show_title_always");
+
   return true;
 }
 
