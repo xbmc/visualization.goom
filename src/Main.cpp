@@ -185,7 +185,6 @@ void CVisualizationGoom::AudioData(const float* pAudioData,
   std::unique_lock<std::mutex> lock(m_mutex);
   if (m_buffer.data_available() >= g_circular_buffer_size)
   {
-    AudioDataQueueTooBig();
     return;
   }
 
@@ -297,11 +296,7 @@ inline std::shared_ptr<uint32_t> CVisualizationGoom::GetNextActivePixels()
 {
   std::shared_ptr<uint32_t> pixels(nullptr);
   std::lock_guard<std::mutex> lk(m_mutex);
-  if (m_activeQueue.empty())
-  {
-    NoActiveBufferAvailable();
-  }
-  else
+  if (!m_activeQueue.empty())
   {
     pixels = m_activeQueue.front();
     m_activeQueue.pop();
@@ -345,7 +340,6 @@ void CVisualizationGoom::Process()
       kodi::Log(ADDON_LOG_WARNING,
                 "Process: Read audio data %u != %d = expected audio data length - skipping this.",
                 read, m_audioBufferLen);
-      SkippedAudioData();
       continue;
     }
     lk.unlock();
@@ -369,7 +363,6 @@ void CVisualizationGoom::Process()
     if (m_activeQueue.size() > g_maxActiveQueueLength)
     {
       // Too far behind, skip this audio data.
-      SkippedAudioData();
       continue;
     }
     lk.unlock();
