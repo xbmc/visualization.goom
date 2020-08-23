@@ -304,7 +304,11 @@ void CVisualizationGoom::Process()
     return;
   }
 
+#ifdef _WIN32  // Windows not allow variable stack size, viz bring only up to 2 channels
+  float floatAudioData[NUM_AUDIO_SAMPLES*AUDIO_SAMPLE_LEN];
+#else
   float floatAudioData[m_audioBufferLen];
+#endif
   const char* title = nullptr;
   unsigned long buffNum = 0;
 
