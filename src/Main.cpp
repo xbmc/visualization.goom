@@ -21,29 +21,32 @@
 
 #include "Main.h"
 
+#include "AudioData.h"
+
 CVisualizationGoom::CVisualizationGoom()
 {
   switch (kodi::GetSettingInt("quality"))
   {
-  case 0:
-    m_tex_width = 512;
-    m_tex_height = 256;
-    break;
-  case 1:
-    m_tex_width = 640;
-    m_tex_height = 360;
-    break;
-  case 2:
-    m_tex_width = 1280;
-    m_tex_height = 720;
-    break;
-  default:
-    m_tex_width = GOOM_TEXTURE_WIDTH;
-    m_tex_height = GOOM_TEXTURE_HEIGHT;
-    break;
+    case 0:
+      m_tex_width = 512;
+      m_tex_height = 256;
+      break;
+    case 1:
+      m_tex_width = 640;
+      m_tex_height = 360;
+      break;
+    case 2:
+      m_tex_width = 1280;
+      m_tex_height = 720;
+      break;
+    default:
+      m_tex_width = GOOM_TEXTURE_WIDTH;
+      m_tex_height = GOOM_TEXTURE_HEIGHT;
+      break;
   }
 
-  m_goomBufferSize = m_tex_width * m_tex_height * sizeof(uint32_t);
+  m_goomBufferLen = m_tex_width * m_tex_height;
+  m_goomBufferSize = m_goomBufferLen * sizeof(uint32_t);
 
 #ifdef HAS_GL
   m_usePixelBufferObjects = kodi::GetSettingBoolean("use_pixel_buffer_objects");
@@ -71,7 +74,10 @@ CVisualizationGoom::~CVisualizationGoom()
 //-- Start --------------------------------------------------------------------
 // Called when a new soundtrack is played
 //-----------------------------------------------------------------------------
-bool CVisualizationGoom::Start(int iChannels, int iSamplesPerSec, int iBitsPerSample, std::string szSongName)
+bool CVisualizationGoom::Start(int iChannels,
+                               int iSamplesPerSec,
+                               int iBitsPerSample,
+                               std::string szSongName)
 {
   if (m_started)
   {
@@ -80,12 +86,13 @@ bool CVisualizationGoom::Start(int iChannels, int iSamplesPerSec, int iBitsPerSa
   }
 
   m_channels = iChannels;
+  m_audioBufferLen = m_channels * AUDIO_SAMPLE_LEN;
   m_currentSongName = szSongName;
   m_titleChange = true;
 
   // Make one init frame in black
-  std::shared_ptr<uint32_t> sp(new uint32_t[m_tex_width * m_tex_height], std::default_delete<uint32_t[]>());
-  memset(sp.get(), 0, m_tex_width * m_tex_height * sizeof(uint32_t));
+  std::shared_ptr<uint32_t> sp(new uint32_t[m_goomBufferLen], std::default_delete<uint32_t[]>());
+  memset(sp.get(), 0, m_goomBufferSize);
   m_activeQueue.push(sp);
 
   // Init GL parts
@@ -164,7 +171,10 @@ bool CVisualizationGoom::OnEnabled()
 //-- Audiodata ----------------------------------------------------------------
 // Called by Kodi to pass new audio data to the vis
 //-----------------------------------------------------------------------------
-void CVisualizationGoom::AudioData(const float* pAudioData, int iAudioDataLength, float* pFreqData, int iFreqDataLength)
+void CVisualizationGoom::AudioData(const float* pAudioData,
+                                   int iAudioDataLength,
+                                   float* pFreqData,
+                                   int iFreqDataLength)
 {
   if (!m_started)
   {
@@ -173,15 +183,16 @@ void CVisualizationGoom::AudioData(const float* pAudioData, int iAudioDataLength
   }
 
   std::unique_lock<std::mutex> lock(m_mutex);
-
   if (m_buffer.data_available() >= g_circular_buffer_size)
+  {
     return;
+  }
 
   m_buffer.write(pAudioData, iAudioDataLength);
   m_wait.notify_one();
 }
 
-bool CVisualizationGoom::UpdateTrack(const VisTrack &track)
+bool CVisualizationGoom::UpdateTrack(const VisTrack& track)
 {
   if (m_goom)
   {
@@ -191,7 +202,7 @@ bool CVisualizationGoom::UpdateTrack(const VisTrack &track)
       artist = track.albumArtist;
     std::string title;
     if (!artist.empty())
-       m_currentSongName = artist + " - " + track.title;
+      m_currentSongName = artist + " - " + track.title;
     else
       m_currentSongName = track.title;
 
@@ -209,7 +220,7 @@ bool CVisualizationGoom::UpdateTrack(const VisTrack &track)
 
 bool CVisualizationGoom::IsDirty()
 {
-  return true;//!m_worker.RequestsQueueEmpty();
+  return true; //!m_worker.RequestsQueueEmpty();
 }
 
 void CVisualizationGoom::Render()
@@ -226,7 +237,8 @@ void CVisualizationGoom::Render()
 #else
   glVertexAttribPointer(m_aPositionLoc, 2, GL_FLOAT, GL_FALSE, 0, m_quadData);
   glEnableVertexAttribArray(m_aPositionLoc);
-  glVertexAttribPointer(m_aCoordLoc, 2, GL_FLOAT, GL_FALSE, 0, m_quadData+m_numVertices * m_componentsPerVertex);
+  glVertexAttribPointer(m_aCoordLoc, 2, GL_FLOAT, GL_FALSE, 0,
+                        m_quadData + m_numVertices * m_componentsPerVertex);
   glEnableVertexAttribArray(m_aCoordLoc);
 #endif
 
@@ -234,11 +246,10 @@ void CVisualizationGoom::Render()
   glDisable(GL_BLEND);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_textureId);
-  if (!m_activeQueue.empty())
-  {
-    std::shared_ptr<uint32_t> pixels = m_activeQueue.front();
-    m_activeQueue.pop();
 
+  std::shared_ptr<uint32_t> pixels = GetNextActivePixels();
+  if (pixels != nullptr)
+  {
 #ifdef HAS_GL
     if (m_usePixelBufferObjects)
     {
@@ -247,22 +258,24 @@ void CVisualizationGoom::Render()
 
       // Bind to current PBO and send pixels to texture object.
       glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pboIds[m_currentPboIndex]);
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_tex_width, m_tex_height, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_tex_width, m_tex_height, GL_RGBA, GL_UNSIGNED_BYTE,
+                      0);
 
       // Bind to next PBO and update data directly on the mapped buffer.
       glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pboIds[nextPboIndex]);
-      std::memcpy(m_pboGoomBuffer[nextPboIndex], pixels.get(), sizeof(uint32_t) * m_tex_width * m_tex_height);
+      std::memcpy(m_pboGoomBuffer[nextPboIndex], pixels.get(), m_goomBufferSize);
 
-      glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
+      glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
       glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     }
     else
 #endif
     {
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_tex_width, m_tex_height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.get());
+      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_tex_width, m_tex_height, GL_RGBA, GL_UNSIGNED_BYTE,
+                      pixels.get());
     }
 
-    m_storedQueue.push(pixels);
+    PushUsedPixels(pixels);
   }
 
   EnableShader();
@@ -279,34 +292,22 @@ void CVisualizationGoom::Render()
 #endif
 }
 
-static inline int16_t FloatToInt16(float f)
+inline std::shared_ptr<uint32_t> CVisualizationGoom::GetNextActivePixels()
 {
-  if (f >= 1.0f)
-    return INT16_MAX;
-  else if (f < -1.0f)
-    return -INT16_MAX;
-  else
-    return static_cast<int16_t>((f * static_cast<float>(INT16_MAX)));
+  std::shared_ptr<uint32_t> pixels(nullptr);
+  std::lock_guard<std::mutex> lk(m_mutex);
+  if (!m_activeQueue.empty())
+  {
+    pixels = m_activeQueue.front();
+    m_activeQueue.pop();
+  }
+  return pixels;
 }
 
-bool CVisualizationGoom::FillBuffer(int16_t* data)
+inline void CVisualizationGoom::PushUsedPixels(std::shared_ptr<uint32_t> pixels)
 {
-  if (m_buffer.data_available() < AUDIO_SAMPLE_LEN * m_channels)
-    return false;
-
-  float floatData[NUM_AUDIO_SAMPLES*AUDIO_SAMPLE_LEN];
-  unsigned read = m_buffer.read(floatData, AUDIO_SAMPLE_LEN * m_channels);
-
-  int ipos = 0;
-  int fpos = 0;
-  while (ipos < AUDIO_SAMPLE_LEN)
-  {
-    data[ipos] = FloatToInt16(floatData[fpos++]);
-    data[AUDIO_SAMPLE_LEN + ipos] = m_channels == 1 ? data[ipos] : FloatToInt16(floatData[fpos++]);
-    ipos++;
-  }
-
-  return true;
+  std::lock_guard<std::mutex> lk(m_mutex);
+  m_storedQueue.push(pixels);
 }
 
 void CVisualizationGoom::Process()
@@ -318,35 +319,56 @@ void CVisualizationGoom::Process()
     return;
   }
 
-  int16_t audioData[NUM_AUDIO_SAMPLES][AUDIO_SAMPLE_LEN];
+  float floatAudioData[m_audioBufferLen];
   const char* title = nullptr;
+  unsigned long buffNum = 0;
 
-  while (!m_threadExit)
+  while (true)
   {
-    bool bExit;
+    std::unique_lock<std::mutex> lk(m_mutex);
+    if (m_threadExit)
     {
-      std::unique_lock<std::mutex> lock(m_mutex);
-      if (!m_threadExit && FillBuffer(reinterpret_cast<int16_t*>(audioData)) != true)
-        m_wait.wait(lock);
+      break;
+    }
+    if (m_buffer.data_available() < m_audioBufferLen)
+    {
+      m_wait.wait(lk);
+    }
+    unsigned read = m_buffer.read(floatAudioData, m_audioBufferLen);
+    if (read != m_audioBufferLen)
+    {
+      kodi::Log(ADDON_LOG_WARNING,
+                "Process: Read audio data %u != %d = expected audio data length - skipping this.",
+                read, m_audioBufferLen);
+      continue;
+    }
+    lk.unlock();
 
-      if (m_titleChange || m_showTitleAlways)
-      {
-        title = m_currentSongName.c_str();
-        m_titleChange = false;
-      }
-      else
-        title = nullptr;
-
-      bExit = m_threadExit;
+    if (m_titleChange || m_showTitleAlways)
+    {
+      title = m_currentSongName.c_str();
+      m_titleChange = false;
+    }
+    else
+    {
+      title = nullptr;
     }
 
-    if (bExit)
+    if (m_threadExit)
+    {
       break;
+    }
 
-    if (m_activeQueue.size() > 10)
+    lk.lock();
+    if (m_activeQueue.size() > g_maxActiveQueueLength)
+    {
+      // Too far behind, skip this audio data.
       continue;
+    }
+    lk.unlock();
 
     std::shared_ptr<uint32_t> pixels;
+    lk.lock();
     if (!m_storedQueue.empty())
     {
       pixels = m_storedQueue.front();
@@ -354,16 +376,31 @@ void CVisualizationGoom::Process()
     }
     else
     {
-      std::shared_ptr<uint32_t> sp(new uint32_t[m_tex_width * m_tex_height], std::default_delete<uint32_t[]>());
+      std::shared_ptr<uint32_t> sp(new uint32_t[m_goomBufferLen],
+                                   std::default_delete<uint32_t[]>());
       pixels = sp;
     }
+    lk.unlock();
 
-    goom_set_screenbuffer(m_goom, pixels.get());
-    goom_update(m_goom, audioData, 0, 0.0f, title, "Kodi");
+    UpdateGoomBuffer(title, floatAudioData, pixels.get());
+    buffNum++;
+
+    lk.lock();
     m_activeQueue.push(pixels);
+    lk.unlock();
   }
 
   goom_close(m_goom);
+}
+
+void CVisualizationGoom::UpdateGoomBuffer(const char* title,
+                                          const float floatAudioData[],
+                                          uint32_t* pixels)
+{
+  static int16_t audioData[NUM_AUDIO_SAMPLES][AUDIO_SAMPLE_LEN];
+  FillAudioDataBuffer(audioData, floatAudioData, m_channels);
+  goom_set_screenbuffer(m_goom, pixels);
+  goom_update(m_goom, audioData, 0, 0.0f, title, "Kodi");
 }
 
 void CVisualizationGoom::InitQuadData()
@@ -372,6 +409,7 @@ void CVisualizationGoom::InitQuadData()
   GLfloat y0 = m_window_ypos;
   GLfloat x1 = m_window_xpos + m_window_width;
   GLfloat y1 = m_window_ypos + m_window_height;
+  // clang-format off
   const GLfloat tempQuadData[] =
   {
     // Vertex positions
@@ -389,8 +427,9 @@ void CVisualizationGoom::InitQuadData()
     1.0, 0.0,
     0.0, 0.0,
   };
+  // clang-format on
 
-  m_numElements = sizeof(tempQuadData)/sizeof(GLfloat);
+  m_numElements = sizeof(tempQuadData) / sizeof(GLfloat);
   m_quadData = new GLfloat[m_numElements];
   for (int i = 0; i < m_numElements; i++)
   {
@@ -417,8 +456,9 @@ bool CVisualizationGoom::InitGLObjects()
   glEnableVertexAttribArray(m_aPositionLoc);
   glEnableVertexAttribArray(m_aCoordLoc);
   glVertexAttribPointer(m_aPositionLoc, m_componentsPerVertex, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-  glVertexAttribPointer(m_aCoordLoc, m_componentsPerTexel, GL_FLOAT, GL_FALSE, 0, (GLvoid*)(m_numVertices * m_componentsPerVertex * sizeof(GLfloat)));
-  glBufferData(GL_ARRAY_BUFFER, m_numElements*sizeof(GLfloat), m_quadData, GL_STATIC_DRAW);
+  glVertexAttribPointer(m_aCoordLoc, m_componentsPerTexel, GL_FLOAT, GL_FALSE, 0,
+                        (GLvoid*)(m_numVertices * m_componentsPerVertex * sizeof(GLfloat)));
+  glBufferData(GL_ARRAY_BUFFER, m_numElements * sizeof(GLfloat), m_quadData, GL_STATIC_DRAW);
   glBindVertexArray(0);
 #endif
 
@@ -439,7 +479,8 @@ bool CVisualizationGoom::InitGLObjects()
 #ifdef HAS_GL
   glGenerateMipmap(GL_TEXTURE_2D);
 #endif
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_tex_width, m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_tex_width, m_tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+               0);
   glBindTexture(GL_TEXTURE_2D, 0);
 
 #ifdef HAS_GL
@@ -459,14 +500,15 @@ bool CVisualizationGoom::InitGLObjects()
       glBufferData(GL_PIXEL_UNPACK_BUFFER, m_goomBufferSize, 0, GL_STREAM_DRAW);
       glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_pboIds[i]);
       glBufferData(GL_PIXEL_UNPACK_BUFFER, m_goomBufferSize, 0, GL_STREAM_DRAW);
-      m_pboGoomBuffer[i] = static_cast<unsigned char*>(glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY));
+      m_pboGoomBuffer[i] =
+          static_cast<unsigned char*>(glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY));
       if (!m_pboGoomBuffer[i])
       {
         kodi::Log(ADDON_LOG_ERROR, "InitGLObjects: Could not do glMapBuffer for pbo %d.", i);
         return false;
       }
     }
-    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);  // release pointer to mapping buffer
+    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER); // release pointer to mapping buffer
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   }
 #endif

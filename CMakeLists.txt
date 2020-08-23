@@ -29,6 +29,7 @@ include_directories(${includes}
 set(GOOM_SOURCES src/Main.cpp)
 
 set(GOOM_HEADERS src/CircularBuffer.h
+                 src/AudioData.h
                  src/Main.h)
 
 list(APPEND DEPLIBS goom)

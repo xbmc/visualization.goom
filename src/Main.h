@@ -23,20 +23,20 @@
 
 #include "CircularBuffer.h"
 
-extern "C" {
+extern "C"
+{
 #include "goom.h"
 #include "goom_config.h"
 }
 
+#include <condition_variable>
+#include <functional>
+#include <glm/ext.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <kodi/General.h>
 #include <kodi/addon-instance/Visualization.h>
 #include <kodi/gui/gl/Shader.h>
-#include <kodi/General.h>
-
-#include <condition_variable>
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <functional>
 #include <mutex>
 #include <queue>
 #include <string>
@@ -45,10 +45,9 @@ extern "C" {
 #define GOOM_TEXTURE_WIDTH 1280
 #define GOOM_TEXTURE_HEIGHT 720
 
-class ATTRIBUTE_HIDDEN CVisualizationGoom
-  : public kodi::addon::CAddonBase,
-    public kodi::addon::CInstanceVisualization,
-    private kodi::gui::gl::CShaderProgram
+class ATTRIBUTE_HIDDEN CVisualizationGoom : public kodi::addon::CAddonBase,
+                                            public kodi::addon::CInstanceVisualization,
+                                            private kodi::gui::gl::CShaderProgram
 {
 public:
   CVisualizationGoom();
@@ -58,22 +57,31 @@ public:
   void Stop() override;
   bool IsDirty() override;
   void Render() override;
-  void AudioData(const float* audioData, int audioDataLength, float* freqData, int freqDataLength) override;
-  bool UpdateTrack(const VisTrack &track) override;
+  void AudioData(const float* audioData,
+                 int audioDataLength,
+                 float* freqData,
+                 int freqDataLength) override;
+  bool UpdateTrack(const VisTrack& track) override;
 
   // kodi::gui::gl::CShaderProgram
   void OnCompiledAndLinked() override;
   bool OnEnabled() override;
 
+protected:
+  virtual void UpdateGoomBuffer(const char* title, const float floatAudioData[], uint32_t* pixels);
+  int m_goomBufferLen;
+  int m_audioBufferLen;
+
 private:
   void Process();
-  bool FillBuffer(int16_t* data);
   bool InitGLObjects();
   void InitQuadData();
+  std::shared_ptr<uint32_t> GetNextActivePixels();
+  void PushUsedPixels(std::shared_ptr<uint32_t> pixels);
 
   int m_tex_width = GOOM_TEXTURE_WIDTH;
   int m_tex_height = GOOM_TEXTURE_HEIGHT;
-  int m_goomBufferSize = GOOM_TEXTURE_WIDTH * GOOM_TEXTURE_HEIGHT * sizeof(uint32_t);
+  size_t m_goomBufferSize;
 
   int m_window_width;
   int m_window_height;
@@ -93,8 +101,9 @@ private:
   GLfloat* m_quadData = nullptr;
 
 #ifdef HAS_GL
-  bool m_usePixelBufferObjects = false; // 'true' is supposed to give better performance but it's not obvious.
-                                        // And when 'true', there may be issues with screen refreshes when changing windows in Kodi.
+  bool m_usePixelBufferObjects =
+      false; // 'true' is supposed to give better performance but it's not obvious.
+      // And when 'true', there may be issues with screen refreshes when changing windows in Kodi.
 #endif
   GLuint m_textureId = 0;
   const static int g_numPbos = 3;
@@ -112,7 +121,7 @@ private:
   PluginInfo* m_goom = nullptr;
 
   // Audio buffer storage
-  const static size_t g_circular_buffer_size = 16*NUM_AUDIO_SAMPLES*AUDIO_SAMPLE_LEN;
+  const static size_t g_circular_buffer_size = 16 * NUM_AUDIO_SAMPLES * AUDIO_SAMPLE_LEN;
   circular_buffer<float> m_buffer = g_circular_buffer_size;
 
   // Goom process thread handles
@@ -123,10 +132,10 @@ private:
 
   // Screen frames storage, m_activeQueue for next view and m_storedQueue to
   // use on next goom round become active again.
+  static constexpr size_t g_maxActiveQueueLength = 20;
   std::queue<std::shared_ptr<uint32_t>> m_activeQueue;
   std::queue<std::shared_ptr<uint32_t>> m_storedQueue;
 
   // Start flag to know init was OK
   bool m_started = false;
 };
-
