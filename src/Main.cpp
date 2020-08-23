@@ -400,6 +400,7 @@ void CVisualizationGoom::InitQuadData()
   GLfloat y0 = m_window_ypos;
   GLfloat x1 = m_window_xpos + m_window_width;
   GLfloat y1 = m_window_ypos + m_window_height;
+  // clang-format off
   const GLfloat tempQuadData[] =
   {
     // Vertex positions
@@ -417,6 +418,7 @@ void CVisualizationGoom::InitQuadData()
     1.0, 0.0,
     0.0, 0.0,
   };
+  // clang-format on
 
   m_numElements = sizeof(tempQuadData)/sizeof(GLfloat);
   m_quadData = new GLfloat[m_numElements];

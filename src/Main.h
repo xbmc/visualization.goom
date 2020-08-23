@@ -66,11 +66,7 @@ public:
   bool OnEnabled() override;
 
 protected:  
-  virtual void NoActiveBufferAvailable() {}
-  virtual void AudioDataQueueTooBig() {}
-  virtual void SkippedAudioData() {}
-  virtual void UpdateGoomBuffer(
-    const char* title, const float floatAudioData[], uint32_t* pixels);
+  virtual void UpdateGoomBuffer(const char* title, const float floatAudioData[], uint32_t* pixels);
   int m_goomBufferLen;
   int m_audioBufferLen;
 
