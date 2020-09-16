@@ -1,16 +1,12 @@
 language: cpp
 
-#
-# Define the build matrix
-#
-# Travis defaults to building on Ubuntu Trusty when building on
-# Linux. We need Xenial in order to get up to date versions of
-# cmake and g++.
-#
 env:
   global:
     - app_id=visualization.goom
 
+#
+# Define the build matrix
+#
 matrix:
   include:
     - os: linux
@@ -23,6 +19,11 @@ matrix:
       compiler: clang
     - os: linux
       dist: bionic
+      sudo: required
+      compiler: gcc
+      env: DEBIAN_BUILD=true
+    - os: linux
+      dist: focal
       sudo: required
       compiler: gcc
       env: DEBIAN_BUILD=true
