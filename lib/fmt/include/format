@@ -1,0 +1,10 @@
+#ifndef FMT_FORMAT_
+#define FMT_FORMAT_
+
+#define FMT_HEADER_ONLY 1
+
+#include "fmt_private/format.h"
+
+namespace std20 = ::fmt;
+
+#endif

@@ -1,0 +1,33 @@
+#pragma once
+
+#include "vivid/types.h"
+#include <vector>
+
+#if __cplusplus > 201402L
+namespace GOOM::UTILS::COLOR_DATA
+{
+#else
+namespace GOOM
+{
+namespace UTILS
+{
+namespace COLOR_DATA
+{
+#endif
+
+// clang-format off
+static const std::vector<vivid::srgb_t> PuOr_3
+{
+  {   0.94510f,   0.63922f,   0.25098f },
+  {   0.96863f,   0.96863f,   0.96863f },
+  {   0.60000f,   0.55686f,   0.76471f },
+};
+// clang-format on
+
+#if __cplusplus > 201402L
+} // namespace GOOM::UTILS::COLOR_DATA
+#else
+} // namespace COLOR_DATA
+} // namespace UTILS
+} // namespace GOOM
+#endif

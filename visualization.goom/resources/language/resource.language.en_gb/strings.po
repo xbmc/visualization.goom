@@ -39,7 +39,7 @@ msgid "Render quality"
 msgstr ""
 
 msgctxt "#30003"
-msgid "If the system does not do the display in a high resolution, it can be reduced."
+msgid "If the Kodi is slow with a higher render quality, then try reducing it."
 msgstr ""
 
 msgctxt "#30004"
@@ -55,9 +55,17 @@ msgid "Standard (1280x720)"
 msgstr ""
 
 msgctxt "#30007"
-msgid "Use OpenGL Pixel Buffer Objects"
+msgid "Medium High (1600x900)"
 msgstr ""
 
 msgctxt "#30008"
+msgid "High (1920x1080)"
+msgstr ""
+
+msgctxt "#30009"
+msgid "Use OpenGL Pixel Buffer Objects"
+msgstr ""
+
+msgctxt "#30010"
 msgid "If set, then OpenGL will use a faster pixel data transfer option for the Goom window."
 msgstr ""

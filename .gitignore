@@ -1,5 +1,7 @@
 # build artifacts
-build/
+build*
+clion-build*
+.idea*
 visualization.*/addon.xml
 
 # Debian build files
