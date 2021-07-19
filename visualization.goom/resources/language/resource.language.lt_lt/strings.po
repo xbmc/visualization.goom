@@ -18,6 +18,14 @@ msgstr ""
 "19)) ? 0 : ((n % 10 >= 2 && n % 10 <= 9 && (n % 100 < 11 || n % 100 > 19)) ? "
 "1 : 2);\n"
 
+msgctxt "Addon Summary"
+msgid "Goom 2k4 Visualization"
+msgstr ""
+
+msgctxt "Addon Description"
+msgid "The Goom 2k4 visualization supports effects like Tentacles, Flash, Stars, Fireworks, Waves, Blurs and Glows and includes a large number of trippy hypnotic effects that dance, swirl and pop with the music,"
+msgstr ""
+
 #settings labels
 msgctxt "#30000"
 msgid "Show titles always"

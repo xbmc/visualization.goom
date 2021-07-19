@@ -16,6 +16,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+msgctxt "Addon Summary"
+msgid "Goom 2k4 Visualization"
+msgstr "Goom 2k4 Visualisierung"
+
+msgctxt "Addon Description"
+msgid "The Goom 2k4 visualization supports effects like Tentacles, Flash, Stars, Fireworks, Waves, Blurs and Glows and includes a large number of trippy hypnotic effects that dance, swirl and pop with the music,"
+msgstr "Die Goom 2k4-Visualisierung unterstützt Effekte wie Tentakel, Blitz, Sterne, Feuerwerk, Wellen, Unschärfen und Glühen und enthält eine große Anzahl trippiger hypnotischer Effekte, die mit der Musik tanzen, wirbeln und knallen."
+
 # settings labels
 msgctxt "#30000"
 msgid "Show titles always"
