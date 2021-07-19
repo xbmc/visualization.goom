@@ -25,7 +25,7 @@ msgctxt "Addon Description"
 msgid "The Goom 2k4 visualization supports effects like Tentacles, Flash, Stars, Fireworks, Waves, Blurs and Glows and includes a large number of trippy hypnotic effects that dance, swirl and pop with the music,"
 msgstr ""
 
-#settings labels
+# settings labels
 msgctxt "#30000"
 msgid "Show titles always"
 msgstr "תמיד להציג כותרות"
