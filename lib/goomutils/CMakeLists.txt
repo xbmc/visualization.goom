@@ -51,7 +51,7 @@ target_include_directories(goomutils
 set_target_properties(goomutils
     PROPERTIES
         CXX_STANDARD ${CPP_STANDARD}
-        POSITION_INDEPENDENT_CODE ON
+        POSITION_INDEPENDENT_CODE ${POS_INDEP_CODE}
 )
 
-message(STATUS "Goom Utils C++ standard = \"${CPP_STANDARD}\".")
+message(STATUS "GoomUtils C++ standard = \"${CPP_STANDARD}\".")

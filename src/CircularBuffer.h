@@ -18,10 +18,10 @@ class CircularBuffer
 public:
   explicit CircularBuffer(unsigned p_size) : m_size{p_size} { m_buffer.resize(p_size); }
 
-  auto DataAvailable() -> unsigned { return m_used; }
-  auto FreeSpace() -> unsigned { return m_size - m_used; }
+  [[nodiscard]] auto DataAvailable() -> unsigned { return m_used; }
+  [[nodiscard]] auto FreeSpace() -> unsigned { return m_size - m_used; }
 
-  auto Write(const T* src, unsigned count) -> bool
+  [[nodiscard]] auto Write(const T* src, unsigned count) -> bool
   {
     if (count > FreeSpace())
     {
@@ -43,7 +43,7 @@ public:
     return true;
   }
 
-  auto Read(T* dst, unsigned count) -> unsigned
+  [[nodiscard]] auto Read(T* dst, unsigned count) -> unsigned
   {
     unsigned done = 0;
     for (;;)

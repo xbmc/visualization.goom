@@ -83,10 +83,10 @@ private:
   void InitPath();
   float m_tVal{0};
   bool m_tValBack = false;
-  static constexpr float T_STEP = 0.01;
+  static constexpr float T_STEP = 0.01F;
   void ResetCentres();
   void UpdateCentres();
-  GammaCorrection m_gammaCorrect{2.0, 0.01};
+  GammaCorrection m_gammaCorrect{2.0F, 0.01F};
 };
 
 ImageFx::ImageFx(const IGoomDraw* const draw,

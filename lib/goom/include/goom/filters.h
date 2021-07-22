@@ -21,7 +21,7 @@ namespace UTILS
 class Parallel;
 } // namespace UTILS
 
-class FXBuffSettings;
+struct FXBuffSettings;
 class PixelBuffer;
 class PluginInfo;
 struct ZoomFilterData;

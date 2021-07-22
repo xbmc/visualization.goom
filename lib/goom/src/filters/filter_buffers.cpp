@@ -50,8 +50,9 @@ private:
   static auto GetPrecalculatedCoefficients() -> FilterCoeff2dArray;
 };
 
+// TODO Old Clang and MSVC won't allow the following '= default'
+//ZoomFilterBuffers::FilterCoefficients::FilterCoefficients() noexcept = default;
 ZoomFilterBuffers::FilterCoefficients::FilterCoefficients() noexcept
-  : m_precalculatedCoeffs{GetPrecalculatedCoefficients()}
 {
 }
 
@@ -122,12 +123,12 @@ auto ZoomFilterBuffers::FilterCoefficients::GetPrecalculatedCoefficients() -> Fi
         i3 = 20;
         i4 = 16;
 **/
-        precalculatedCoeffs[coeffH][coeffV] = NeighborhoodCoeffArray{/*.c*/ {
+        precalculatedCoeffs[coeffH][coeffV].c = {
             static_cast<uint8_t>(i1),
             static_cast<uint8_t>(i2),
             static_cast<uint8_t>(i3),
             static_cast<uint8_t>(i4),
-        }};
+        };
       }
     }
   }

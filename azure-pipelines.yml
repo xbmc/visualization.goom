@@ -35,11 +35,19 @@ jobs:
           ARCHITECTURE: x64
           CONFIGURATION: Release
           CMAKE_DEFINES: -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION="10.0.17763.0"
-        ARM64-UWP:
-          GENERATOR: "Visual Studio 15 2017"
-          ARCHITECTURE: ARM64
-          CONFIGURATION: Release
-          CMAKE_DEFINES: -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION="10.0.17763.0"
+# Windows ARM compiler is not so good. Maybe we should use a later version than VS 15?          
+#d:\a\1\visualization.goom\lib\goom\src\tentacles_fx.cpp(360): fatal error C1001: An internal error has occurred in the compiler. [D:\a\1\s\build\visualization.goom-prefix\src\visualization.goom-build\lib\goom\goom.vcxproj] [D:\a\1\s\build\visualization.goom.vcxproj]
+#    (compiler file 'd:\agent\_work\4\s\src\vctools\compiler\utc\src\p2\main.c', line 187)
+#     To work around this problem, try simplifying or changing the program near the locations listed above.
+#    Please choose the Technical Support command on the Visual C++ 
+#     Help menu, or open the Technical Support help file for more information
+#    
+#    Internal Compiler Error in C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.16.27023\bin\HostX64\arm64\CL.exe.  You will be prompted to send an error report to Microsoft later.tubes.cpp
+#         ARM64-UWP:
+#          GENERATOR: "Visual Studio 15 2017"
+#          ARCHITECTURE: ARM64
+#          CONFIGURATION: Release
+#          CMAKE_DEFINES: -DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION="10.0.17763.0"
 
     workspace:
       clean: all

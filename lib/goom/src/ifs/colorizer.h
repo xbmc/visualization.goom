@@ -68,19 +68,19 @@ private:
   IfsDancersFx::ColorMode m_forcedColorMode = IfsDancersFx::ColorMode::_NULL;
   uint32_t m_maxHitCount = 0;
   float m_logMaxHitCount = 0.0;
-  static constexpr float MIN_T_AWAY_FROM_BASE_COLOR = 0.0;
-  static constexpr float MAX_T_AWAY_FROM_BASE_COLOR = 0.4;
-  static constexpr float INITIAL_T_AWAY_FROM_BASE_COLOR = 0.0;
+  static constexpr float MIN_T_AWAY_FROM_BASE_COLOR = 0.0F;
+  static constexpr float MAX_T_AWAY_FROM_BASE_COLOR = 0.4F;
+  static constexpr float INITIAL_T_AWAY_FROM_BASE_COLOR = 0.0F;
   float m_tAwayFromBaseColor = INITIAL_T_AWAY_FROM_BASE_COLOR; // in [0, 1]
   static auto GetNextColorMode() -> IfsDancersFx::ColorMode;
   [[nodiscard]] auto GetNextMixerMapColor(float t, float x, float y) const -> Pixel;
 
-  static constexpr float MAIN_GAMMA = 10.0;
-  static constexpr float MAIN_GAMMA_THRESHOLD = 0.01;
+  static constexpr float MAIN_GAMMA = 10.0F;
+  static constexpr float MAIN_GAMMA_THRESHOLD = 0.01F;
   const UTILS::GammaCorrection m_mainGammaCorrect{MAIN_GAMMA, MAIN_GAMMA_THRESHOLD};
 
-  static constexpr float LOW_GAMMA = 4.0;
-  static constexpr float LOW_GAMMA_THRESHOLD = 0.01;
+  static constexpr float LOW_GAMMA = 4.0F;
+  static constexpr float LOW_GAMMA_THRESHOLD = 0.01F;
   const UTILS::GammaCorrection m_lowGammaCorrect{LOW_GAMMA, LOW_GAMMA_THRESHOLD};
 };
 

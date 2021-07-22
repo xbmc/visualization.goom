@@ -95,14 +95,14 @@ private:
   uint32_t m_timeSinceLastGoom;
   static constexpr uint32_t MAX_BIG_GOOM_DURATION = 100;
   uint32_t m_timeSinceLastBigGoom;
-  static constexpr float BIG_GOOM_SPEED_LIMIT = 0.10;
-  static constexpr float BIG_GOOM_FACTOR = 1.01;
+  static constexpr float BIG_GOOM_SPEED_LIMIT = 0.10F;
+  static constexpr float BIG_GOOM_FACTOR = 1.01F;
   float m_goomLimit; // auto-updated limit of goom_detection
   float m_bigGoomLimit;
   float m_goomPower;
 
-  static constexpr float ACCELERATION_MULTIPLIER = 0.95;
-  static constexpr float SPEED_MULTIPLIER = 0.99;
+  static constexpr float ACCELERATION_MULTIPLIER = 0.95F;
+  static constexpr float SPEED_MULTIPLIER = 0.99F;
   float m_volume;
   float m_acceleration;
   float m_speed;

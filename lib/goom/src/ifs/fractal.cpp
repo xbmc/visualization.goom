@@ -41,10 +41,10 @@ struct CentreType
 
 // clang-format off
 static const std::vector<CentreType> CENTRE_LIST = {
-  { /*.depth = */10, /*.r1Mean = */0.7, /*.r2Mean = */0.0, /*.dr1Mean = */0.3, /*.dr2Mean = */0.4 },
-  { /*.depth = */ 6, /*.r1Mean = */0.6, /*.r2Mean = */0.0, /*.dr1Mean = */0.4, /*.dr2Mean = */0.3 },
-  { /*.depth = */ 4, /*.r1Mean = */0.5, /*.r2Mean = */0.0, /*.dr1Mean = */0.4, /*.dr2Mean = */0.3 },
-  { /*.depth = */ 4, /*.r1Mean = */0.4, /*.r2Mean = */0.0, /*.dr1Mean = */0.5, /*.dr2Mean = */0.3 },
+  { /*.depth = */10, /*.r1Mean = */0.7F, /*.r2Mean = */0.0F, /*.dr1Mean = */0.3F, /*.dr2Mean = */0.4F },
+  { /*.depth = */ 6, /*.r1Mean = */0.6F, /*.r2Mean = */0.0F, /*.dr1Mean = */0.4F, /*.dr2Mean = */0.3F },
+  { /*.depth = */ 4, /*.r1Mean = */0.5F, /*.r2Mean = */0.0F, /*.dr1Mean = */0.4F, /*.dr2Mean = */0.3F },
+  { /*.depth = */ 4, /*.r1Mean = */0.4F, /*.r2Mean = */0.0F, /*.dr1Mean = */0.5F, /*.dr2Mean = */0.3F },
 };
 // clang-format on
 

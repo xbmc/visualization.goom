@@ -29,7 +29,8 @@ public:
     DEBUG,
     INFO,
     WARN,
-    ERROR
+    // TODO Make others use 'L_' (MSCV build issue)
+    L_ERROR
   };
   using HandlerFunc = std::function<void(const LogLevel, const std::string&)>;
 
@@ -169,7 +170,7 @@ inline void Logging::VLog(LogLevel lvl,
 #define LogWarn(...) \
   Logging::GetLogger().Log(Logging::LogLevel::WARN, __LINE__, __func__, __VA_ARGS__)
 #define LogError(...) \
-  Logging::GetLogger().Log(Logging::LogLevel::ERROR, __LINE__, __func__, __VA_ARGS__)
+  Logging::GetLogger().Log(Logging::LogLevel::L_ERROR, __LINE__, __func__, __VA_ARGS__)
 #endif
 
 

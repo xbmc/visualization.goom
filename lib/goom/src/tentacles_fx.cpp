@@ -91,21 +91,21 @@ private:
 
   std::string m_resourcesDirectory{};
   bool m_updatingWithDraw = false;
-  float m_cycle = 0.0;
-  static constexpr float CYCLE_INC_MIN = 0.01;
-  static constexpr float CYCLE_INC_MAX = 0.05;
+  float m_cycle = 0.0F;
+  static constexpr float CYCLE_INC_MIN = 0.01F;
+  static constexpr float CYCLE_INC_MAX = 0.05F;
   float m_cycleInc = CYCLE_INC_MIN;
-  float m_lig = 1.15;
-  float m_ligs = 0.1;
-  float m_distt = 10.0;
+  float m_lig = 1.15F;
+  float m_ligs = 0.1F;
+  float m_distt = 10.0F;
   static constexpr double DISTT_MIN = 106.0;
   static constexpr double DISTT_MAX = 286.0;
-  float m_distt2 = 0.0;
-  static constexpr float DISTT2_MIN = 8.0;
-  static constexpr float DISTT2_MAX = 1000.0;
-  float m_distt2Offset = 0.0;
-  float m_rot = 0.0; // entre 0 et m_two_pi
-  float m_rotAtStartOfPrettyMove = 0.0;
+  float m_distt2 = 0.0F;
+  static constexpr float DISTT2_MIN = 8.0F;
+  static constexpr float DISTT2_MAX = 1000.0F;
+  float m_distt2Offset = 0.0F;
+  float m_rot = 0.0F; // entre 0 et m_two_pi
+  float m_rotAtStartOfPrettyMove = 0.0F;
   bool m_doRotation = false;
   static auto GetStableRotationOffset(float cycleVal) -> float;
   bool m_isPrettyMoveHappening = false;
@@ -113,14 +113,14 @@ private:
   int32_t m_prettyMoveCheckStopMark = 0;
   static constexpr uint32_t PRETTY_MOVE_HAPPENING_MIN = 100;
   static constexpr uint32_t PRETTY_MOVE_HAPPENING_MAX = 200;
-  float m_distt2OffsetPreStep = 0.0;
+  float m_distt2OffsetPreStep = 0.0F;
 
   bool m_prettyMoveReadyToStart = false;
   static constexpr int32_t MIN_PRE_PRETTY_MOVE_LOCK = 200;
   static constexpr int32_t MAX_PRE_PRETTY_MOVE_LOCK = 500;
   int32_t m_prePrettyMoveLock = 0;
   int32_t m_postPrettyMoveLock = 0;
-  float m_prettyMoveLerpMix = 1.0 / 16.0; // original goom value
+  float m_prettyMoveLerpMix = 1.0F / 16.0F; // original goom value
   void IsPrettyMoveHappeningUpdate(float acceleration);
   void PrettyMovePreStart();
   void PrettyMoveStart(float acceleration, int32_t timerVal = -1);
@@ -522,7 +522,7 @@ void TentaclesFx::TentaclesImpl::ChangeDominantColor()
   m_stats.ChangeDominantColor();
   assert(m_dominantColorMap);
   const Pixel newColor = RandomColorMaps::GetRandomColor(*m_dominantColorMap, 0.0F, 1.0F);
-  m_dominantColor = IColorMap::GetColorMix(m_dominantColor, newColor, 0.7);
+  m_dominantColor = IColorMap::GetColorMix(m_dominantColor, newColor, 0.7F);
 }
 
 inline auto TentaclesFx::TentaclesImpl::GetModColors() -> std::tuple<Pixel, Pixel>

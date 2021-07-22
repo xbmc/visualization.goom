@@ -86,7 +86,7 @@ private:
 
   uint32_t m_loopVar = 0; // mouvement des points
 
-  GammaCorrection m_gammaCorrect{5.0, 0.01};
+  GammaCorrection m_gammaCorrect{5.0F, 0.01F};
 
   void Update();
 
@@ -220,7 +220,7 @@ void GoomDotsFx::GoomDotsFxImpl::ChangeColors()
   }
 
   m_middleColor = RandomColorMaps::GetRandomColor(
-      *m_colorMaps[0]->GetRandomColorMapPtr(ColorMapGroup::MISC, RandomColorMaps::ALL), 0.1, 1.0);
+      *m_colorMaps[0]->GetRandomColorMapPtr(ColorMapGroup::MISC, RandomColorMaps::ALL), 0.1F, 1.0F);
 
   m_useSingleBufferOnly = ProbabilityOfMInN(0, 2);
   m_useGrayScale = ProbabilityOfMInN(0, 10);
@@ -277,8 +277,8 @@ void GoomDotsFx::GoomDotsFxImpl::Update()
   const float color3T2 = color3T1;
 
   const size_t speedvarMult80Plus15Div15 = speedvarMult80Plus15 / 15;
-  constexpr float T_MIN = 0.5;
-  constexpr float T_MAX = 1.0;
+  constexpr float T_MIN = 0.5F;
+  constexpr float T_MAX = 1.0F;
   const float t_step = (T_MAX - T_MIN) / static_cast<float>(speedvarMult80Plus15Div15);
 
   float t = T_MIN;
@@ -374,8 +374,8 @@ auto GoomDotsFx::GoomDotsFxImpl::GetColor(const Pixel& color0,
                                           const Pixel& color1,
                                           const float brightness) -> Pixel
 {
-  constexpr float T_MIN = 0.9999;
-  constexpr float T_MAX = 1.0;
+  constexpr float T_MIN = 0.9999F;
+  constexpr float T_MAX = 1.0F;
   const float tMix = GetRandInRange(T_MIN, T_MAX);
   Pixel color{};
   if (!m_useGrayScale)

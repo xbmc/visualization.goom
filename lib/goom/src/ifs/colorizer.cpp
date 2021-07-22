@@ -131,8 +131,8 @@ auto Colorizer::GetMixedColor(const Pixel& baseColor,
       }
       else
       {
-        constexpr float MIN_T_BASE_MIX = 0.3;
-        constexpr float MAX_T_BASE_MIX = 0.5;
+        constexpr float MIN_T_BASE_MIX = 0.3F;
+        constexpr float MAX_T_BASE_MIX = 0.5F;
         tBaseMix = GetRandInRange(MIN_T_BASE_MIX, MAX_T_BASE_MIX);
       }
       break;
@@ -155,11 +155,11 @@ auto Colorizer::GetMixedColor(const Pixel& baseColor,
     case IfsDancersFx::ColorMode::SINE_MIX_COLORS:
     case IfsDancersFx::ColorMode::SINE_MAP_COLORS:
     {
-      constexpr float INITIAL_FREQ = 20.0;
-      constexpr float T_MIX_FACTOR = 0.5;
-      constexpr float Z_STEP = 0.1;
+      constexpr float INITIAL_FREQ = 20.0F;
+      constexpr float T_MIX_FACTOR = 0.5F;
+      constexpr float Z_STEP = 0.1F;
       static float s_freq = INITIAL_FREQ;
-      static float s_z = 0.0;
+      static float s_z = 0.0F;
 
       mixColor = GetNextMixerMapColor(T_MIX_FACTOR * (1.0F + std::sin(s_freq * s_z)), x, y);
       s_z += Z_STEP;

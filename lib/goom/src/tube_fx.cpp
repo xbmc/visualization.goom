@@ -47,11 +47,11 @@ struct TubeSettings
   PathParams circlePathParams;
 };
 constexpr std::array<TubeSettings, NUM_TUBES> TUBE_SETTINGS{{
-    {true, false, 1.0, 150.0, {10.0, +0.5, +0.5}},
-    {false, false, 0.01, 130.0, {50.0, -0.75, -1.0}},
-    {false, false, 0.01, 130.0, {40.0, +1.0, +0.75}},
+    {true, false, 1.0F, 150.0F, {10.0F, +0.5F, +0.5F}},
+    {false, false, 0.01F, 130.0F, {50.0F, -0.75F, -1.0F}},
+    {false, false, 0.01F, 130.0F, {40.0F, +1.0F, +0.75F}},
 }};
-constexpr PathParams COMMON_CIRCLE_PATH_PARMS{10.0, +3.0, +3.0};
+constexpr PathParams COMMON_CIRCLE_PATH_PARMS{10.0F, +3.0F, +3.0F};
 
 auto lerp(const PathParams& p0, const PathParams& p1, const float t) -> PathParams
 {
@@ -65,13 +65,13 @@ auto lerp(const PathParams& p0, const PathParams& p1, const float t) -> PathPara
 constexpr uint32_t MIN_COLORMAP_TIME = 100;
 constexpr uint32_t MAX_COLORMAP_TIME = 1000;
 
-constexpr float MIN_BRIGHTNESS_FACTOR = 0.01;
-constexpr float MAX_BRIGHTNESS_FACTOR = 0.20;
+constexpr float MIN_BRIGHTNESS_FACTOR = 0.01F;
+constexpr float MAX_BRIGHTNESS_FACTOR = 0.20F;
 
 constexpr uint32_t MIN_JITTER_TIME = 50;
 constexpr uint32_t MAX_JITTER_TIME = 500;
-constexpr float MIN_SHAPE_JITTER_OFFSET = 0.0;
-constexpr float MAX_SHAPE_JITTER_OFFSET = 20.0;
+constexpr float MIN_SHAPE_JITTER_OFFSET = 0.0F;
+constexpr float MAX_SHAPE_JITTER_OFFSET = 20.0F;
 
 constexpr uint32_t MIN_DECREASED_SPEED_TIME = 100;
 constexpr uint32_t MAX_DECREASED_SPEED_TIME = 500;
@@ -85,15 +85,15 @@ constexpr uint32_t MAX_STAY_IN_CENTRE_TIME = 1000;
 constexpr uint32_t MIN_STAY_AWAY_FROM_CENTRE_TIME = 100;
 constexpr uint32_t MAX_STAY_AWAY_FROM_CENTRE_TIME = 100;
 
-constexpr float PROB_RESET_COLOR_MAPS = 1.0 / 3.0;
-constexpr float PROB_ALLOW_OVEREXPOSED = 1.0 / 1000.0;
-constexpr float PROB_DECREASE_SPEED = 1.0 / 5.0;
-constexpr float PROB_INCREASE_SPEED = 1.0 / 2.0;
-constexpr float PROB_RANDOM_INCREASE_SPEED = 1.0 / 20.0;
-constexpr float PROB_NORMAL_SPEED = 1.0 / 20.0;
-constexpr float PROB_NO_SHAPE_JITTER = 0.8;
-constexpr float PROB_OSCILLATING_SHAPE_PATH = 1.0;
-constexpr float PROB_MOVE_AWAY_FROM_CENTRE = 0.3;
+constexpr float PROB_RESET_COLOR_MAPS = 1.0F / 3.0F;
+constexpr float PROB_ALLOW_OVEREXPOSED = 1.0F / 1000.0F;
+constexpr float PROB_DECREASE_SPEED = 1.0F / 5.0F;
+constexpr float PROB_INCREASE_SPEED = 1.0F / 2.0F;
+constexpr float PROB_RANDOM_INCREASE_SPEED = 1.0F / 20.0F;
+constexpr float PROB_NORMAL_SPEED = 1.0F / 20.0F;
+constexpr float PROB_NO_SHAPE_JITTER = 0.8F;
+constexpr float PROB_OSCILLATING_SHAPE_PATH = 1.0F;
+constexpr float PROB_MOVE_AWAY_FROM_CENTRE = 0.3F;
 
 class TubeFx::TubeFxImpl
 {
@@ -135,7 +135,7 @@ private:
   bool m_oscillatingShapePath = ProbabilityOf(PROB_OSCILLATING_SHAPE_PATH);
 
   std::vector<Tube> m_tubes{};
-  static constexpr float ALL_JOIN_CENTRE_STEP = 0.001;
+  static constexpr float ALL_JOIN_CENTRE_STEP = 0.001F;
   TValue m_allJoinCentreT{TValue::StepType::CONTINUOUS_REVERSIBLE, ALL_JOIN_CENTRE_STEP};
   const V2dInt m_middlePos;
   Timer m_allStayInCentreTimer;
@@ -144,7 +144,7 @@ private:
   [[nodiscard]] auto GetTransformedCentrePoint(uint32_t tubeId, const V2dInt& centre) const
       -> V2dInt;
 
-  static constexpr float JITTER_STEP = 0.1;
+  static constexpr float JITTER_STEP = 0.1F;
   TValue m_shapeJitterT{TValue::StepType::CONTINUOUS_REVERSIBLE, JITTER_STEP};
 
   Timer m_colorMapTimer;

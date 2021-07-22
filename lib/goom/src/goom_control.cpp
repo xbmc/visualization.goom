@@ -187,7 +187,7 @@ struct GoomData
   int32_t drawLinesDuration = LinesFx::MIN_LINE_DURATION;
   int32_t lineMode = LinesFx::MIN_LINE_DURATION; // l'effet lineaire a dessiner
 
-  static constexpr float SWITCH_MULT_AMOUNT = 29.0 / 30.0;
+  static constexpr float SWITCH_MULT_AMOUNT = 29.0F / 30.0F;
   float switchMult = SWITCH_MULT_AMOUNT;
   static constexpr int SWITCH_INCR_AMOUNT = 0x7f;
   int32_t switchIncr = SWITCH_INCR_AMOUNT;
@@ -267,8 +267,8 @@ private:
   Timer m_convolveNotAllowOverexposed{0};
 
   // Line Fx
-  static constexpr float INITIAL_SCREEN_HEIGHT_FRACTION_LINE1 = 0.4;
-  static constexpr float INITIAL_SCREEN_HEIGHT_FRACTION_LINE2 = 0.2;
+  static constexpr float INITIAL_SCREEN_HEIGHT_FRACTION_LINE1 = 0.4F;
+  static constexpr float INITIAL_SCREEN_HEIGHT_FRACTION_LINE2 = 0.2F;
   LinesFx m_gmline1;
   LinesFx m_gmline2;
 
@@ -362,7 +362,7 @@ private:
                       Pixel* couleur,
                       LinesFx::LineType* mode,
                       float* amplitude,
-                      int far);
+                      int farVal);
 
   void UpdateMessage(const std::string& message);
   void DrawText(const std::string& str, int xPos, int yPos, float spacing);
@@ -597,7 +597,7 @@ enum class GoomEffect
 struct GoomStateColorMatch
 {
   GoomEffect effect;
-  std::function<auto()->std::shared_ptr<RandomColorMaps>> getColorMaps;
+  std::function<std::shared_ptr<RandomColorMaps>()> getColorMaps;
 };
 using GoomStateColorMatchedSet = std::array<GoomStateColorMatch, NUM<GoomEffect>>;
 static const std::array<GoomStateColorMatchedSet, 7> GOOM_STATE_COLOR_MATCHED_SETS{{
@@ -1079,7 +1079,7 @@ void GoomControl::GoomControlImpl::SetNextState()
 
 void GoomControl::GoomControlImpl::BigBreakIfMusicIsCalm()
 {
-  constexpr float CALM_SPEED = 0.01;
+  constexpr float CALM_SPEED = 0.01F;
   constexpr uint32_t CALM_CYCLES = 16;
 
   if ((m_goomInfo->GetSoundInfo().GetSpeed() < CALM_SPEED) &&
@@ -1182,7 +1182,7 @@ void GoomControl::GoomControlImpl::ChangeVitesse()
   constexpr int32_t FAST_SPEED = Vitesse::STOP_SPEED - 6;
   constexpr int32_t FASTER_SPEED = Vitesse::STOP_SPEED - 7;
   constexpr int32_t SLOW_SPEED = Vitesse::STOP_SPEED - 1;
-  constexpr float OLD_TO_NEW_MIX = 0.4;
+  constexpr float OLD_TO_NEW_MIX = 0.4F;
 
   // on accelere
   if (((newVitesse < FASTER_SPEED) && (oldVitesse < FAST_SPEED) &&
@@ -1276,13 +1276,13 @@ void GoomControl::GoomControlImpl::ChangeRotation()
   else if (m_goomEvent.Happens(GoomEvent::FILTER_DECREASE_ROTATION))
   {
     m_stats.DoDecreaseRotation();
-    constexpr float ROTATE_SLOWER_FACTOR = 0.9;
+    constexpr float ROTATE_SLOWER_FACTOR = 0.9F;
     m_filterControl.MultiplyRotateSetting(ROTATE_SLOWER_FACTOR);
   }
   else if (m_goomEvent.Happens(GoomEvent::FILTER_INCREASE_ROTATION))
   {
     m_stats.DoIncreaseRotation();
-    constexpr float ROTATE_FASTER_FACTOR = 1.1;
+    constexpr float ROTATE_FASTER_FACTOR = 1.1F;
     m_filterControl.MultiplyRotateSetting(ROTATE_FASTER_FACTOR);
   }
   else if (m_goomEvent.Happens(GoomEvent::FILTER_TOGGLE_ROTATION))
@@ -1308,7 +1308,7 @@ void GoomControl::GoomControlImpl::ChangeBlockyWavy()
 
 void GoomControl::GoomControlImpl::ChangeAllowOverexposed()
 {
-  constexpr float HALF_INTENSITY = 0.5;
+  constexpr float HALF_INTENSITY = 0.5F;
 
   if (!m_goomEvent.Happens(GoomEvent::CHANGE_ZOOM_FILTER_ALLOW_OVEREXPOSED_TO_ON))
   {
@@ -1431,7 +1431,7 @@ void GoomControl::GoomControlImpl::ApplyZoom()
 
   if (m_filterControl.GetFilterSettings().noisify)
   {
-    constexpr float REDUCING_FACTOR = 0.94;
+    constexpr float REDUCING_FACTOR = 0.94F;
     const float reducedNoiseFactor =
         m_filterControl.GetFilterSettings().noiseFactor * REDUCING_FACTOR;
     m_filterControl.SetNoiseFactorSetting(reducedNoiseFactor);
@@ -1630,7 +1630,7 @@ void GoomControl::GoomControlImpl::ChooseGoomLine(float* param1,
                                                   Pixel* couleur,
                                                   LinesFx::LineType* mode,
                                                   float* amplitude,
-                                                  const int far)
+                                                  const int farVal)
 {
   *amplitude = 1.0F;
   *mode = m_goomEvent.GetRandomLineTypeEvent();
@@ -1638,7 +1638,7 @@ void GoomControl::GoomControlImpl::ChooseGoomLine(float* param1,
   switch (*mode)
   {
     case LinesFx::LineType::circle:
-      if (far)
+      if (farVal)
       {
         *param1 = *param2 = 0.47F;
         *amplitude = 0.8F;
@@ -1660,7 +1660,7 @@ void GoomControl::GoomControlImpl::ChooseGoomLine(float* param1,
       }
       break;
     case LinesFx::LineType::hline:
-      if (m_goomEvent.Happens(GoomEvent::CHANGE_H_LINE_PARAMS) || far)
+      if (m_goomEvent.Happens(GoomEvent::CHANGE_H_LINE_PARAMS) || farVal)
       {
         *param1 = static_cast<float>(GetScreenHeight()) / 7.0F;
         *param2 = 6.0F * static_cast<float>(GetScreenHeight()) / 7.0F;
@@ -1672,7 +1672,7 @@ void GoomControl::GoomControlImpl::ChooseGoomLine(float* param1,
       }
       break;
     case LinesFx::LineType::vline:
-      if (m_goomEvent.Happens(GoomEvent::CHANGE_V_LINE_PARAMS) || far)
+      if (m_goomEvent.Happens(GoomEvent::CHANGE_V_LINE_PARAMS) || farVal)
       {
         *param1 = static_cast<float>(GetScreenWidth()) / 7.0F;
         *param2 = 6.0F * static_cast<float>(GetScreenWidth()) / 7.0F;
@@ -1972,23 +1972,27 @@ void GoomControl::GoomControlImpl::DrawText(const std::string& str,
           : RandomColorMaps{}.GetRandomColorMap(/*ColorMapGroup::diverging*/);
   const auto lastTextIndex = static_cast<float>(str.size() - 1);
   //  const ColorMap& colorMap2 = colorMaps.getColorMap(colordata::ColorMapName::Blues);
-  //  const Pixel fontColor = m_textColorMap->GetColor(t);
-  const Pixel outlineColor = m_textOutlineColor;
-  constexpr float TEXT_GAMMA = 4.2;
-  constexpr float TEXT_GAMMA_THRESHOLD = 0.01;
+  const Pixel fontColor = m_textColorMap->GetColor(t);
+  const Pixel outlineFontColor = m_textOutlineColor;
+  constexpr float TEXT_GAMMA = 4.2F;
+  constexpr float TEXT_GAMMA_THRESHOLD = 0.01F;
   static GammaCorrection s_gammaCorrect{TEXT_GAMMA, TEXT_GAMMA_THRESHOLD};
-  const auto getFontColor = [&](const size_t textIndexOfChar, float x, float y, float width,
-                                float height) {
-    const float tChar = 1.0F - static_cast<float>(textIndexOfChar) / lastTextIndex;
-    const Pixel fontColor = m_textColorMap->GetColor(y / static_cast<float>(height));
-    const Pixel charColor = charColorMap.GetColor(tChar);
-    return s_gammaCorrect.GetCorrection(
-        brightness, IColorMap::GetColorMix(fontColor, charColor, x / static_cast<float>(width)));
+  const auto getFontColor = [&]([[maybe_unused]] const size_t textIndexOfChar,
+                                [[maybe_unused]] const float x, [[maybe_unused]] const float y,
+                                [[maybe_unused]] const float width,
+                                [[maybe_unused]] const float height) {
+    //const float tChar = 1.0F - static_cast<float>(textIndexOfChar) / lastTextIndex;
+    //const Pixel fontColor = m_textColorMap->GetColor(y / static_cast<float>(height));
+    //const Pixel charColor = charColorMap.GetColor(tChar);
+    //return s_gammaCorrect.GetCorrection(
+    //    brightness, IColorMap::GetColorMix(fontColor, charColor, x / static_cast<float>(width)));
+    return s_gammaCorrect.GetCorrection(brightness, fontColor);
   };
   const auto getOutlineFontColor =
-      [&]([[maybe_unused]] size_t textIndexOfChar, [[maybe_unused]] float x,
-          [[maybe_unused]] float y, [[maybe_unused]] float width, [[maybe_unused]] float height) {
-        return s_gammaCorrect.GetCorrection(brightness, outlineColor);
+      [&]([[maybe_unused]] const size_t textIndexOfChar, [[maybe_unused]] const float x,
+          [[maybe_unused]] const float y, [[maybe_unused]] const float width,
+          [[maybe_unused]] const float height) {
+        return s_gammaCorrect.GetCorrection(brightness, outlineFontColor);
       };
 
   //  CALL UP TO PREPARE ONCE ONLY

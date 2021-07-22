@@ -20,7 +20,7 @@ namespace GOOM::IFS
 {
 #endif
 
-class IfsPoint;
+struct IfsPoint;
 
 enum class BlurrerColorMode
 {
@@ -56,8 +56,8 @@ private:
   BlurrerColorMode m_colorMode{};
   Pixel m_singleColor{};
 
-  static constexpr float BLUR_GAMMA = 5.0;
-  static constexpr float BLUR_GAMMA_THRESHOLD = 0.01;
+  static constexpr float BLUR_GAMMA = 5.0F;
+  static constexpr float BLUR_GAMMA_THRESHOLD = 0.01F;
   const UTILS::GammaCorrection m_blurGammaCorrect{BLUR_GAMMA, BLUR_GAMMA_THRESHOLD};
   void SetPointColor(IfsPoint& point,
                      float t,

@@ -25,7 +25,7 @@ public:
   static constexpr size_t MAX_CIRCLES = 116;
   static constexpr int32_t MIN_SIZE = 2;
   using GetHexColorsFunc =
-      std::function<auto(uint32_t circleNum, const V2dInt& pos)->std::vector<Pixel>>;
+          std::function<std::vector<Pixel>(uint32_t circleNum, const V2dInt& pos)>;
   struct ColorFuncs
   {
     GetHexColorsFunc getColors;
@@ -53,8 +53,8 @@ public:
   void SetGetColorsFunc(const ColorFuncs& getColor);
   void DrawCentre();
 
-  static constexpr float MIN_CIRCLE_ANGLE = 1.0;
-  static constexpr float MAX_CIRCLE_ANGLE = 60.0;
+  static constexpr float MIN_CIRCLE_ANGLE = 1.0F;
+  static constexpr float MAX_CIRCLE_ANGLE = 60.0F;
   auto GetCurrentCircleAngle() const -> float;
   void SetCurrentCircleAngle(float degrees);
 
@@ -78,7 +78,7 @@ public:
   void FinishNextCircleSegment();
 
 private:
-  static constexpr float HEX_ANGLE = 60.0;
+  static constexpr float HEX_ANGLE = 60.0F;
   Turtle m_turtle;
   ColorFuncs m_getColors{};
   const uint32_t m_numCircles;

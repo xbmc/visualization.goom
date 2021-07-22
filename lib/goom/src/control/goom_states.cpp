@@ -1,7 +1,6 @@
 #include "goom_states.h"
 
 #include "goom_graphic.h"
-#include "goomutils/goomrand.h"
 
 #include <utility>
 #include <vector>

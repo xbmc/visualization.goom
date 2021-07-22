@@ -127,15 +127,15 @@ private:
   static constexpr uint32_t MIN_NUM_STARS = 100;
   uint32_t m_maxStars = MAX_NUM_STARS;
   std::vector<Star> m_stars{};
-  static constexpr float OLD_AGE = 0.95;
+  static constexpr float OLD_AGE = 0.95F;
   uint32_t m_maxStarAge = 15;
 
   static constexpr float MIN_MIN_SIDE_WIND = -0.10F;
   static constexpr float MAX_MIN_SIDE_WIND = -0.01F;
   static constexpr float MIN_MAX_SIDE_WIND = +0.01F;
   static constexpr float MAX_MAX_SIDE_WIND = +0.10F;
-  float m_minSideWind = 0.0;
-  float m_maxSideWind = 0.00001;
+  float m_minSideWind = 0.0F;
+  float m_maxSideWind = 0.00001F;
 
   static constexpr float MIN_MIN_GRAVITY = +0.005F;
   static constexpr float MAX_MIN_GRAVITY = +0.010F;
@@ -745,8 +745,8 @@ auto FlyingStarsFx::FlyingStarsImpl::GetMixedColors(const Star& star,
                                                     const float brightness)
     -> std::tuple<Pixel, Pixel>
 {
-  constexpr float STAR_GAMMA = 4.2;
-  constexpr float STAR_GAMMA_THRESHOLD = 0.1;
+  constexpr float STAR_GAMMA = 4.2F;
+  constexpr float STAR_GAMMA_THRESHOLD = 0.1F;
   static GammaCorrection s_gammaCorrect{STAR_GAMMA, STAR_GAMMA_THRESHOLD};
 
   Pixel color;
@@ -758,12 +758,12 @@ auto FlyingStarsFx::FlyingStarsImpl::GetMixedColors(const Star& star,
   {
     case ColorMode::SINE_MIX_COLORS:
     {
-      constexpr float INITIAL_FREQ = 20.0;
-      constexpr float T_MIX_FACTOR = 0.5;
-      constexpr float Z_STEP = 0.1;
+      constexpr float INITIAL_FREQ = 20.0F;
+      constexpr float T_MIX_FACTOR = 0.5F;
+      constexpr float Z_STEP = 0.1F;
       static float s_freq = INITIAL_FREQ;
       static const float s_zStep = Z_STEP;
-      static float s_z = 0.0;
+      static float s_z = 0.0F;
 
       const float tSin = T_MIX_FACTOR * (1.0F + std::sin(s_freq * s_z));
       color = star.currentColorMap->GetColor(tSin);
@@ -802,8 +802,8 @@ auto FlyingStarsFx::FlyingStarsImpl::GetMixedColors(const Star& star,
       throw std::logic_error("Unknown ColorMode enum.");
   }
 
-  constexpr float MIN_MIX = 0.2;
-  constexpr float MAX_MIX = 0.8;
+  constexpr float MIN_MIX = 0.2F;
+  constexpr float MAX_MIX = 0.8F;
   const float tMix = stdnew::lerp(MIN_MIX, MAX_MIX, t);
   const Pixel mixedColor =
       s_gammaCorrect.GetCorrection(brightness, IColorMap::GetColorMix(color, dominantColor, tMix));
@@ -813,7 +813,7 @@ auto FlyingStarsFx::FlyingStarsImpl::GetMixedColors(const Star& star,
       m_colorMode == ColorMode::SIMILAR_LOW_COLORS
           ? mixedLowColor
           : s_gammaCorrect.GetCorrection(brightness,
-                                         IColorMap::GetColorMix(mixedColor, mixedLowColor, 0.4));
+                                         IColorMap::GetColorMix(mixedColor, mixedLowColor, 0.4F));
 
   return std::make_tuple(mixedColor, remixedLowColor);
 }
@@ -848,9 +848,9 @@ void FlyingStarsFx::FlyingStarsImpl::SoundEventOccurred()
   ChangeColorMaps();
 
   // Why 200 ? Because the FX was developed on 320x200.
-  constexpr float WIDTH = 320.0;
-  constexpr float HEIGHT = 200.0;
-  constexpr float MIN_HEIGHT = 50.0;
+  constexpr float WIDTH = 320.0F;
+  constexpr float HEIGHT = 200.0F;
+  constexpr float MIN_HEIGHT = 50.0F;
   const auto heightRatio = static_cast<float>(m_goomInfo->GetScreenInfo().height) / HEIGHT;
   const float defaultRadius = (1.0F + m_goomInfo->GetSoundInfo().GetGoomPower()) *
                               GetRandInRange(MIN_HEIGHT, HEIGHT) / WIDTH;
@@ -937,9 +937,9 @@ auto FlyingStarsFx::FlyingStarsImpl::GetFireworksStarParams(const float defaultR
     }
   }
 
-  constexpr float RADIUS_FACTOR = 1.0;
-  constexpr float INITIAL_WIND_FACTOR = 0.1;
-  constexpr float INITIAL_GRAVITY_FACTOR = 0.4;
+  constexpr float RADIUS_FACTOR = 1.0F;
+  constexpr float INITIAL_WIND_FACTOR = 0.1F;
+  constexpr float INITIAL_GRAVITY_FACTOR = 0.4F;
   starParams.radius = RADIUS_FACTOR * defaultRadius;
   starParams.vage = m_maxAge * (1.0F - m_goomInfo->GetSoundInfo().GetGoomPower());
   starParams.windFactor = INITIAL_WIND_FACTOR;
@@ -958,10 +958,10 @@ auto FlyingStarsFx::FlyingStarsImpl::GetRainStarParams(const float defaultRadius
       GetRandInRange(x0, static_cast<int32_t>(m_goomInfo->GetScreenInfo().width) - x0));
   starParams.pos.y = -GetRandInRange(3, 64);
 
-  constexpr float RADIUS_FACTOR = 1.5;
-  constexpr float INITIAL_VAGE = 0.002;
-  constexpr float INITIAL_WIND_FACTOR = 1.0;
-  constexpr float INITIAL_GRAVITY_FACTOR = 0.4;
+  constexpr float RADIUS_FACTOR = 1.5F;
+  constexpr float INITIAL_VAGE = 0.002F;
+  constexpr float INITIAL_WIND_FACTOR = 1.0F;
+  constexpr float INITIAL_GRAVITY_FACTOR = 0.4F;
   starParams.radius = RADIUS_FACTOR * defaultRadius;
   starParams.vage = INITIAL_VAGE;
   starParams.windFactor = INITIAL_WIND_FACTOR;
@@ -980,9 +980,9 @@ auto FlyingStarsFx::FlyingStarsImpl::GetFountainStarParams(const float defaultRa
   starParams.pos.y =
       static_cast<int32_t>(m_goomInfo->GetScreenInfo().height + GetRandInRange(3U, 64U));
 
-  constexpr float INITIAL_VAGE = 0.001;
-  constexpr float INITIAL_WIND_FACTOR = 1.0;
-  constexpr float INITIAL_GRAVITY_FACTOR = 1.0;
+  constexpr float INITIAL_VAGE = 0.001F;
+  constexpr float INITIAL_WIND_FACTOR = 1.0F;
+  constexpr float INITIAL_GRAVITY_FACTOR = 1.0F;
   starParams.radius = 1.0F + defaultRadius;
   starParams.vage = INITIAL_VAGE;
   starParams.windFactor = INITIAL_WIND_FACTOR;
@@ -1029,7 +1029,7 @@ void FlyingStarsFx::FlyingStarsImpl::AddABomb(const V2dInt& pos,
   const float bombRadius = radius * GetRandInRange(0.01F, 2.0F);
   const float bombAngle = GetBombAngle(m_stars[i]);
 
-  constexpr float RADIUS_OFFSET = -0.2;
+  constexpr float RADIUS_OFFSET = -0.2F;
   m_stars[i].velocity.x = bombRadius * std::cos(bombAngle);
   m_stars[i].velocity.y = RADIUS_OFFSET + bombRadius * std::sin(bombAngle);
 
@@ -1055,8 +1055,8 @@ auto FlyingStarsFx::FlyingStarsImpl::GetBombAngle(const Star& star) const -> flo
       break;
     case StarModes::RAIN:
     {
-      constexpr float MIN_RAIN_ANGLE = 0.1;
-      constexpr float MAX_RAIN_ANGLE = m_pi - 0.1;
+      constexpr float MIN_RAIN_ANGLE = 0.1F;
+      constexpr float MAX_RAIN_ANGLE = m_pi - 0.1F;
       const float xFactor = star.pos.x / static_cast<float>(m_goomInfo->GetScreenInfo().width - 1);
       minAngle = stdnew::lerp(MIN_RAIN_ANGLE, m_half_pi - 0.1F, 1.0F - xFactor);
       maxAngle = stdnew::lerp(m_half_pi + 0.1F, MAX_RAIN_ANGLE, xFactor);

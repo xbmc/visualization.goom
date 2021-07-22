@@ -30,14 +30,19 @@ namespace GOOM::UTILS
 
 const uint32_t g_randMax = (xoshiro256plus64::max() > std::numeric_limits<uint32_t>::max())
                                ? std::numeric_limits<uint32_t>::max()
-                               : xoshiro256plus64::max();
+                               : static_cast<uint32_t>(xoshiro256plus64::max());
 
-// NOTE: C++ std::uniform_int_distribution is too expensive (about double) so we use Xoshiro
-//   and multiplication/shift technique. For timings, see tests/test_goomrand.cpp.
+// NOTE: C++ std::uniform_int_distribution is too expensive (about double time) so we use
+// Xoshiro and multiplication/shift technique. For timings, see tests/test_goomrand.cpp.
 // thread_local xoshiro256starstar64 eng { GetRandSeed() };
 
 thread_local uint64_t randSeed = std::random_device{}();
 thread_local xoshiro256plus64 xoshiroEng{GetRandSeed()};
+
+auto GetXoshiroEng() -> xoshiro256plus64
+{
+  return xoshiroEng;
+}
 
 auto GetRandSeed() -> uint64_t
 {

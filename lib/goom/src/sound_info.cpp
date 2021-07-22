@@ -207,8 +207,8 @@ void SoundInfo::UpdateAcceleration()
   // Speed of sound transformations
   m_acceleration = m_volume;
 
-  constexpr float VERY_SLOW_SPEED = 0.1;
-  constexpr float SLOW_SPEED = 0.3;
+  constexpr float VERY_SLOW_SPEED = 0.1F;
+  constexpr float SLOW_SPEED = 0.3F;
 
   if (m_speed < VERY_SLOW_SPEED)
   {
@@ -304,20 +304,20 @@ void SoundInfo::UpdateLastBigGoom()
 
 void SoundInfo::UpdateGoomLimit()
 {
-  constexpr float VERY_SLOW_SPEED = 0.01;
-  constexpr float VERY_SLOW_SPEED_FACTOR = 0.91;
+  constexpr float VERY_SLOW_SPEED = 0.01F;
+  constexpr float VERY_SLOW_SPEED_FACTOR = 0.91F;
   if (m_speed < VERY_SLOW_SPEED)
   {
     m_goomLimit *= VERY_SLOW_SPEED_FACTOR;
   }
 
   constexpr uint32_t TOTAL_GOOMS_SHORT_CYCLE = 4;
-  constexpr float TOTAL_GOOMS_SHORT_INCREMENT = 0.02;
+  constexpr float TOTAL_GOOMS_SHORT_INCREMENT = 0.02F;
   constexpr uint32_t TOTAL_GOOMS_MEDIUM_CYCLE = 7;
-  constexpr float TOTAL_GOOMS_MEDIUM_INCREMENT = 0.03;
+  constexpr float TOTAL_GOOMS_MEDIUM_INCREMENT = 0.03F;
   constexpr uint32_t TOTAL_GOOMS_BIG_CYCLE = 16;
-  constexpr float TOTAL_GOOMS_BIG_INCREMENT = 0.04;
-  constexpr float ACCEL_DECREMENT = 0.02;
+  constexpr float TOTAL_GOOMS_BIG_INCREMENT = 0.04F;
+  constexpr float ACCEL_DECREMENT = 0.02F;
 
   if (m_totalGoomsInCurrentCycle > TOTAL_GOOMS_SHORT_CYCLE)
   {
@@ -325,12 +325,12 @@ void SoundInfo::UpdateGoomLimit()
   }
   else if (m_totalGoomsInCurrentCycle > TOTAL_GOOMS_MEDIUM_CYCLE)
   {
-    m_goomLimit *= 1.0 + TOTAL_GOOMS_MEDIUM_INCREMENT;
+    m_goomLimit *= 1.0F + TOTAL_GOOMS_MEDIUM_INCREMENT;
     m_goomLimit += TOTAL_GOOMS_MEDIUM_INCREMENT;
   }
   else if (m_totalGoomsInCurrentCycle > TOTAL_GOOMS_BIG_CYCLE)
   {
-    m_goomLimit *= 1.0 + TOTAL_GOOMS_BIG_INCREMENT;
+    m_goomLimit *= 1.0F + TOTAL_GOOMS_BIG_INCREMENT;
     m_goomLimit += TOTAL_GOOMS_BIG_INCREMENT;
   }
   else if (m_totalGoomsInCurrentCycle == 0)
@@ -338,15 +338,15 @@ void SoundInfo::UpdateGoomLimit()
     m_goomLimit = m_maxAccelSinceLastReset - ACCEL_DECREMENT;
   }
 
-  constexpr float TOO_BIG_LIMIT = 0.02;
-  constexpr float SMALL_DECREMENT = 0.01;
+  constexpr float TOO_BIG_LIMIT = 0.02F;
+  constexpr float SMALL_DECREMENT = 0.01F;
   if ((m_totalGoomsInCurrentCycle == 1) && (m_goomLimit > TOO_BIG_LIMIT))
   {
     m_goomLimit -= SMALL_DECREMENT;
   }
 
-  constexpr float MIN_LIMIT = 0.0;
-  constexpr float MAX_LIMIT = 1.0;
+  constexpr float MIN_LIMIT = 0.0F;
+  constexpr float MAX_LIMIT = 1.0F;
   m_goomLimit = stdnew::clamp(m_goomLimit, MIN_LIMIT, MAX_LIMIT);
 }
 

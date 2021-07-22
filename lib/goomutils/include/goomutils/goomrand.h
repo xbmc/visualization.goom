@@ -1,6 +1,9 @@
 #ifndef VISUALIZATION_GOOM_LIB_GOOMUTILS_GOOMRAND_H_
 #define VISUALIZATION_GOOM_LIB_GOOMUTILS_GOOMRAND_H_
 
+#include "xoshiro.hpp"
+
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <format>
@@ -24,6 +27,7 @@ namespace GOOM::UTILS
 auto GetRandSeed() -> uint64_t;
 void SetRandSeed(uint64_t seed);
 extern const uint32_t g_randMax;
+auto GetXoshiroEng() -> xoshiro256plus64;
 
 void SaveRandState(std::ostream& f);
 void RestoreRandState(std::istream& f);
@@ -43,7 +47,8 @@ auto GetRand() -> uint32_t;
 auto GetRandInRange(int32_t n0, int32_t n1) -> int32_t;
 // Return random float in the range x0 <= n <= x1.
 auto GetRandInRange(float x0, float x1) -> float;
-
+template<class RandomIt>
+void Shuffle(RandomIt first, RandomIt last);
 // Return prob(m/n)
 inline auto ProbabilityOfMInN(uint32_t m, uint32_t n) -> bool;
 inline auto ProbabilityOf(float p) -> bool;
@@ -88,6 +93,12 @@ inline auto GetNRand(const uint32_t nmax) -> uint32_t
 inline auto GetRand() -> uint32_t
 {
   return GetRandInRange(0U, g_randMax);
+}
+
+template<class RandomIt>
+inline void Shuffle(RandomIt first, RandomIt last)
+{
+  return std::shuffle(first, last, GetXoshiroEng());
 }
 
 inline auto ProbabilityOfMInN(const uint32_t m, const uint32_t n) -> bool

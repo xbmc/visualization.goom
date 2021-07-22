@@ -39,7 +39,7 @@ public:
   };
 
   [[nodiscard]] auto GetColorMapInfo(uint32_t id) const -> const ColorMapInfo&;
-  auto AddColorMapInfo(const ColorMapInfo& info) -> uint32_t;
+  [[nodiscard]] auto AddColorMapInfo(const ColorMapInfo& info) -> uint32_t;
 
   void UpdateAllColorMapInfo(const ColorMapInfo& info);
   void UpdateColorMapInfo(uint32_t id, const ColorMapInfo& info);
@@ -59,7 +59,6 @@ public:
 private:
   std::vector<ColorMapInfo> m_infoList{};
   std::vector<std::shared_ptr<const IColorMap>> m_colorMaps{};
-  uint32_t m_counter{};
 
   void DoUpdateColorMap(uint32_t id, const ColorMapInfo& info);
   void DoUpdateColorMapName(uint32_t id, COLOR_DATA::ColorMapName colorMapName);

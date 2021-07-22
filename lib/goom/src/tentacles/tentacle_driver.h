@@ -171,7 +171,7 @@ private:
   std::shared_ptr<const UTILS::IColorMap> m_prevColorMap{};
   static constexpr uint32_t MAX_COUNT_SINCE_COLORMAP_CHANGE = 100;
   static constexpr float TRANSITION_STEP =
-      1.0 / static_cast<float>(MAX_COUNT_SINCE_COLORMAP_CHANGE);
+      1.0F / static_cast<float>(MAX_COUNT_SINCE_COLORMAP_CHANGE);
   mutable float m_tTransition = 0.0F;
 };
 

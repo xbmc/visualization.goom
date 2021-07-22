@@ -96,7 +96,7 @@ public:
   [[nodiscard]] auto GetMaxJitterOffset() const -> int32_t;
   void SetMaxJitterOffset(int32_t val);
 
-  using TransformCentreFunc = std::function<auto(uint32_t tubeId, const V2dInt& centre)->V2dInt>;
+  using TransformCentreFunc = std::function<V2dInt(uint32_t tubeId, const V2dInt& centre)>;
   void SetTransformCentreFunc(const TransformCentreFunc& f);
   [[nodiscard]] auto GetCentrePathT() const -> float;
   void SetCentrePathT(float val);

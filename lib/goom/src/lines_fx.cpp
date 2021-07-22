@@ -43,8 +43,8 @@ using namespace UTILS;
 using UTILS::floats_equal;
 using UTILS::SMALL_FLOAT;
 
-constexpr float MIN_MAX_NORMALIZED_PEAK = 10.0;
-constexpr float MAX_MAX_NORMALIZED_PEAK = 150.0;
+constexpr float MIN_MAX_NORMALIZED_PEAK = 10.0F;
+constexpr float MAX_MAX_NORMALIZED_PEAK = 150.0F;
 
 class LinesFx::LinesImpl
 {
@@ -96,8 +96,8 @@ private:
   std::shared_ptr<RandomColorMaps> m_colorMaps{};
   const IColorMap* m_currentColorMap{};
   std::string m_resourcesDirectory{};
-  GammaCorrection m_gammaCorrect{4.2, 0.1};
-  float m_currentBrightness = 1.0;
+  GammaCorrection m_gammaCorrect{4.2F, 0.1F};
+  float m_currentBrightness = 1.0F;
 
   mutable LineStats m_stats{};
 
@@ -389,10 +389,10 @@ void LinesFx::LinesImpl::MoveSrceLineCloserToDest()
   constexpr float COLOR_MIX_AMOUNT = 1.0F / 64.0F;
   m_color1 = IColorMap::GetColorMix(m_color1, m_color2, COLOR_MIX_AMOUNT);
 
-  constexpr float MIN_POW_INC = 0.03;
-  constexpr float MAX_POW_INC = 0.10;
-  constexpr float MIN_POWER = 1.1;
-  constexpr float MAX_POWER = 17.5;
+  constexpr float MIN_POW_INC = 0.03F;
+  constexpr float MAX_POW_INC = 0.10F;
+  constexpr float MIN_POWER = 1.1F;
+  constexpr float MAX_POWER = 17.5F;
   m_power += m_powinc;
   if (m_power < MIN_POWER)
   {
@@ -617,7 +617,7 @@ auto LinesFx::LinesImpl::GetAudioPoints(const Pixel& lineColor,
   const Pixel randColor = GetRandomLineColor();
 
   constexpr float T_STEP = 1.0F / static_cast<float>(AUDIO_SAMPLE_LEN - 1);
-  constexpr float halfwayT = 0.5;
+  constexpr float halfwayT = 0.5F;
   float currentTStep = T_STEP;
   float t = 0.0;
 

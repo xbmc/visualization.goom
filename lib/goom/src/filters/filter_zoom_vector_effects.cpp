@@ -118,7 +118,7 @@ auto ZoomVectorEffects::GetSpeedCoefficient(const float sqDistFromZero,
     }
     case ZoomFilterMode::SPEEDWAY_MODE:
     {
-      constexpr float SQ_DIST_FACTOR = 0.01;
+      constexpr float SQ_DIST_FACTOR = 0.01F;
       speedCoeff *=
           m_filterSettings->speedwayAmplitude * (coords.GetY() + SQ_DIST_FACTOR * sqDistFromZero);
       break;
@@ -297,7 +297,7 @@ auto ZoomVectorEffects::GetTanEffectVelocity(const float sqDistFromZero,
 {
   UpdateDoZoomVectorTanEffectStats();
   const float tanArg =
-      stdnew::clamp(std::fmod(sqDistFromZero, m_half_pi), -0.85 * m_half_pi, 0.85 * m_half_pi);
+      stdnew::clamp(std::fmod(sqDistFromZero, m_half_pi), -0.85F * m_half_pi, 0.85F * m_half_pi);
   const float tanSqDist = std::tan(tanArg);
   return {tanSqDist * velocity.GetX(), tanSqDist * velocity.GetY()};
 }

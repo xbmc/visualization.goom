@@ -150,10 +150,10 @@ inline auto GetColorBlend(const Pixel& fgnd, const Pixel& bgnd) -> Pixel
   const auto newA = std::min(channel_limits<int32_t>::max(), fgndA + bgndA);
 
   return Pixel{{
-      /*.r = */ static_cast<u_int8_t>(newR),
-      /*.g = */ static_cast<u_int8_t>(newG),
-      /*.b = */ static_cast<u_int8_t>(newB),
-      /*.a = */ static_cast<u_int8_t>(newA),
+      /*.r = */ static_cast<uint8_t>(newR),
+      /*.g = */ static_cast<uint8_t>(newG),
+      /*.b = */ static_cast<uint8_t>(newB),
+      /*.a = */ static_cast<uint8_t>(newA),
   }};
 }
 
@@ -339,10 +339,10 @@ inline auto GetRgbColorLerp(const Pixel& colA, const Pixel& colB, float t) -> Pi
   const uint32_t newA = GetRgbColorChannelLerp(colA_A, colB_A, intT);
 
   return Pixel{{
-      /*.r = */ static_cast<u_int8_t>(newR),
-      /*.g = */ static_cast<u_int8_t>(newG),
-      /*.b = */ static_cast<u_int8_t>(newB),
-      /*.a = */ static_cast<u_int8_t>(newA),
+      /*.r = */ static_cast<uint8_t>(newR),
+      /*.g = */ static_cast<uint8_t>(newG),
+      /*.b = */ static_cast<uint8_t>(newB),
+      /*.a = */ static_cast<uint8_t>(newA),
   }};
 }
 

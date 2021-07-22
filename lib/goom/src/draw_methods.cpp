@@ -166,7 +166,7 @@ void DrawMethods::DrawWuLine(
     {
       return;
     }
-    constexpr float TOLERANCE = 0.001;
+    constexpr float TOLERANCE = 0.001F;
     if (brightness < TOLERANCE)
     {
       return;
@@ -317,7 +317,7 @@ void DrawMethods::DrawLineOverlap(int x0,
     {
       return;
     }
-    constexpr float TOLERANCE = 0.001;
+    constexpr float TOLERANCE = 0.001F;
     if (brightness >= (1.0 - TOLERANCE))
     {
       DrawPixels(x, y, colors);

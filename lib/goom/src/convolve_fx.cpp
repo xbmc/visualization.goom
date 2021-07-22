@@ -133,15 +133,15 @@ void ConvolveFx::ConvolveImpl::Convolve(const PixelBuffer& currentBuff, PixelBuf
 {
   const float flash = (m_factor * m_flashIntensity + m_screenBrightness) / 100.0F;
   const auto flashInt = static_cast<uint32_t>(std::round(flash * 256 + 0.0001F));
-  constexpr float INCREASE_RATE = 1.3;
-  constexpr float DECAY_RATE = 0.955;
+  constexpr float INCREASE_RATE = 1.3F;
+  constexpr float DECAY_RATE = 0.955F;
   if (m_goomInfo->GetSoundInfo().GetTimeSinceLastGoom() == 0)
   {
     m_factor += m_goomInfo->GetSoundInfo().GetGoomPower() * INCREASE_RATE;
   }
   m_factor *= DECAY_RATE;
 
-  constexpr float TOLERANCE = 0.02;
+  constexpr float TOLERANCE = 0.02F;
   if (std::fabs(1.0 - flash) < TOLERANCE)
   {
     currentBuff.CopyTo(outputBuff, m_goomInfo->GetScreenInfo().size);

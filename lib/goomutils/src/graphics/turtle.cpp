@@ -28,6 +28,7 @@
 
 #include "goom/goom_draw.h"
 #include "goom/v2d.h"
+#include "goomutils/mathutils.h"
 
 #include <cassert>
 #include <cmath>
@@ -70,7 +71,7 @@ void Turtle::Forward(const int32_t dist, const std::vector<Pixel>& colors, const
 {
   // FIXME: correct the angle
   const V2dInt oldP{m_pos};
-  const double angle = M_PI * (90 + m_heading) / 180.0;
+  const double angle = m_pi * (90 + m_heading) / 180.0;
   m_pos.x += static_cast<int32_t>(std::round(static_cast<double>(dist) * std::cos(angle)));
   m_pos.y -= static_cast<int32_t>(std::round(static_cast<double>(dist) * std::sin(angle)));
   if (m_penDown)

@@ -85,7 +85,7 @@ target_include_directories(goom
 set_target_properties(goom
     PROPERTIES
         CXX_STANDARD ${CPP_STANDARD}
-        POSITION_INDEPENDENT_CODE ON
+        POSITION_INDEPENDENT_CODE ${POS_INDEP_CODE}
 )
 
 message(STATUS "Goom C++ standard = \"${CPP_STANDARD}\".")

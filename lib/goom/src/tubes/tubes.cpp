@@ -45,7 +45,7 @@ using UTILS::Timer;
 using UTILS::TValue;
 using UTILS::Weights;
 
-constexpr size_t NUM_SHAPES_PER_TUBE = 45;
+constexpr uint32_t NUM_SHAPES_PER_TUBE = 45;
 // Strangely, 'NUM_SHAPES_PER_TUBE = 100' gives a small gap in
 // circle at 90 and 270 degrees.
 
@@ -53,9 +53,9 @@ constexpr bool REVERSIBLE_SHAPE_PATHS = true;
 constexpr bool OSCILLATING_SHAPE_PATHS = true;
 
 // TODO: Probability and random should be higher up???????
-constexpr float PROB_INTERIOR_SHAPE = 45.0 / 50.0;
+constexpr float PROB_INTERIOR_SHAPE = 45.0F / 50.0F;
 constexpr uint32_t MAX_INTERIOR_SHAPES_TIME = 500;
-constexpr float PROB_NO_BOUNDARY_SHAPES = 1.0 / 5.0;
+constexpr float PROB_NO_BOUNDARY_SHAPES = 1.0F / 5.0F;
 constexpr uint32_t MAX_NO_BOUNDARY_SHAPES_TIME = 1;
 
 constexpr uint32_t MIN_STRIPE_WIDTH = NUM_SHAPES_PER_TUBE / 6;
@@ -65,20 +65,20 @@ static_assert(MIN_STRIPE_WIDTH > 0, "MIN_STRIPE_WIDTH must be > 0.");
 constexpr uint32_t MIN_NUM_CIRCLES_IN_GROUP = 10;
 constexpr uint32_t MAX_NUM_CIRCLES_IN_GROUP = 100;
 
-constexpr float MIN_HEX_SIZE = 3.0;
-constexpr float MAX_HEX_SIZE = 9.0;
+constexpr float MIN_HEX_SIZE = 3.0F;
+constexpr float MAX_HEX_SIZE = 9.0F;
 
-constexpr float MIN_CIRCLE_SPEED = 0.0005;
-constexpr float NML_CIRCLE_SPEED = 0.005;
-constexpr float MAX_CIRCLE_SPEED = 0.008;
+constexpr float MIN_CIRCLE_SPEED = 0.0005F;
+constexpr float NML_CIRCLE_SPEED = 0.005F;
+constexpr float MAX_CIRCLE_SPEED = 0.008F;
 
-constexpr float MIN_CENTRE_SPEED = 0.0005;
-constexpr float NML_CENTRE_SPEED = 0.005;
-constexpr float MAX_CENTRE_SPEED = 0.05;
+constexpr float MIN_CENTRE_SPEED = 0.0005F;
+constexpr float NML_CENTRE_SPEED = 0.005F;
+constexpr float MAX_CENTRE_SPEED = 0.05F;
 /**
-constexpr float MIN_CENTRE_SPEED = 0.00005;
-constexpr float NML_CENTRE_SPEED = 0.0005;
-constexpr float MAX_CENTRE_SPEED = 0.005;
+constexpr float MIN_CENTRE_SPEED = 0.00005F;
+constexpr float NML_CENTRE_SPEED = 0.0005F;
+constexpr float MAX_CENTRE_SPEED = 0.005F;
  **/
 
 static const Weights<ColorMapMixMode> S_COLOR_MAP_MIX_MODES{{
@@ -103,8 +103,8 @@ static const Weights<LowColorTypes> S_LOW_COLOR_TYPES{{
 constexpr uint32_t MIN_LOW_COLOR_TYPE_TIME = 100;
 constexpr uint32_t MAX_LOW_COLOR_TYPE_TIME = 1000;
 
-constexpr float OUTER_CIRCLE_BRIGHTNESS = 0.1;
-constexpr float LIGHTER_COLOR_POWER = 10.0;
+constexpr float OUTER_CIRCLE_BRIGHTNESS = 0.1F;
+constexpr float LIGHTER_COLOR_POWER = 10.0F;
 
 class ShapeColorizer;
 class ShapePath;
@@ -382,7 +382,7 @@ private:
   const RandomColorMaps* const m_randomInnerColorMaps;
   float m_brightnessFactor;
 
-  GammaCorrection m_gammaCorrect{5.0, 0.01};
+  GammaCorrection m_gammaCorrect{5.0F, 0.01F};
 
   std::vector<ShapeColorMaps> m_shapeColorMaps;
   std::vector<ShapeColors> m_oldShapeColors;
@@ -441,7 +441,7 @@ private:
 class ShapePath
 {
 public:
-  static constexpr float T_AT_CENTRE = 0.5;
+  static constexpr float T_AT_CENTRE = 0.5F;
 
   ShapePath(const V2dInt& startPos,
             const V2dInt& finishPos,
@@ -698,8 +698,8 @@ inline void Tube::TubeImpl::SetCircleSpeed(const float val)
 
 void Tube::TubeImpl::IncreaseCircleSpeed()
 {
-  constexpr float MIN_INCREASE_SPEED_FACTOR = 1.01;
-  constexpr float MAX_INCREASE_SPEED_FACTOR = 10.0;
+  constexpr float MIN_INCREASE_SPEED_FACTOR = 1.01F;
+  constexpr float MAX_INCREASE_SPEED_FACTOR = 10.0F;
   const float factor = GetRandInRange(MIN_INCREASE_SPEED_FACTOR, MAX_INCREASE_SPEED_FACTOR);
 
   for (auto& shape : m_shapes)
@@ -711,8 +711,8 @@ void Tube::TubeImpl::IncreaseCircleSpeed()
 
 void Tube::TubeImpl::DecreaseCircleSpeed()
 {
-  constexpr float MIN_DECREASE_SPEED_FACTOR = 0.1;
-  constexpr float MAX_DECREASE_SPEED_FACTOR = 0.99;
+  constexpr float MIN_DECREASE_SPEED_FACTOR = 0.1F;
+  constexpr float MAX_DECREASE_SPEED_FACTOR = 0.99F;
   const float factor = GetRandInRange(MIN_DECREASE_SPEED_FACTOR, MAX_DECREASE_SPEED_FACTOR);
 
   for (auto& shape : m_shapes)
@@ -781,8 +781,8 @@ void Tube::TubeImpl::UpdateTimers()
 
 inline auto Tube::TubeImpl::GetInteriorShapeSize(const float hexLen) -> uint32_t
 {
-  constexpr float MIN_SIZE_FACTOR = 0.5;
-  constexpr float MAX_SIZE_FACTOR = 1.3;
+  constexpr float MIN_SIZE_FACTOR = 0.5F;
+  constexpr float MAX_SIZE_FACTOR = 1.3F;
   return static_cast<uint32_t>(
       std::round(GetRandInRange(MIN_SIZE_FACTOR, MAX_SIZE_FACTOR) * hexLen));
 }
@@ -1146,9 +1146,9 @@ auto ShapeColorizer::GetColors(const ShapeColorMaps& shapeColorMaps,
 inline auto ShapeColorizer::GetBrightness(const V2dInt& pos) const -> float
 {
   const float distFromCentre = GetDistFromCentreFactor(pos);
-  constexpr float DIST_SQ_CUTOFF = 0.02;
-  constexpr float CUTOFF_BRIGHTNESS = 0.005;
-  constexpr float MIN_BRIGHTNESS = 0.75;
+  constexpr float DIST_SQ_CUTOFF = 0.02F;
+  constexpr float CUTOFF_BRIGHTNESS = 0.005F;
+  constexpr float MIN_BRIGHTNESS = 0.75F;
   return distFromCentre < DIST_SQ_CUTOFF ? CUTOFF_BRIGHTNESS : MIN_BRIGHTNESS + distFromCentre;
 }
 

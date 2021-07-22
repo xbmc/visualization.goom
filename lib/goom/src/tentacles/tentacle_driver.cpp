@@ -36,6 +36,7 @@ namespace GOOM::TENTACLES
 #endif
 
 using namespace UTILS;
+using UTILS::Shuffle;
 
 inline auto ChangeCurrentColorMapEvent() -> bool
 {
@@ -48,16 +49,16 @@ const size_t TentacleDriver::CHANGE_TENTACLE_COLOR_MAP_EVERY_N_UPDATES = 100;
 TentacleDriver::TentacleDriver(const IGoomDraw* const draw) noexcept : m_draw{draw}
 {
   const IterParamsGroup iter1 = {
-      {100, 0.600, 1.0, {1.5, -10.0, +10.0, m_pi}, 100.0},
-      {125, 0.700, 2.0, {1.0, -10.0, +10.0, 0.0}, 105.0},
+      {100, 0.600F, 1.0F, {1.5F, -10.0f, +10.0F, m_pi}, 100.0F},
+      {125, 0.700F, 2.0F, {1.0F, -10.0F, +10.0F, 0.0F}, 105.0F},
   };
   const IterParamsGroup iter2 = {
-      {125, 0.700, 0.5, {1.0, -10.0, +10.0, 0.0}, 100.0},
-      {150, 0.800, 1.5, {1.5, -10.0, +10.0, m_pi}, 105.0},
+      {125, 0.700F, 0.5F, {1.0F, -10.0F, +10.0F, 0.0F}, 100.0},
+      {150, 0.800F, 1.5F, {1.5F, -10.0F, +10.0F, m_pi}, 105.0},
   };
   const IterParamsGroup iter3 = {
-      {150, 0.800, 1.5, {1.5, -10.0, +10.0, m_pi}, 100.0},
-      {200, 0.900, 2.5, {1.0, -10.0, +10.0, 0.0}, 105.0},
+      {150, 0.800F, 1.5F, {1.5F, -10.0F, +10.0F, m_pi}, 100.0},
+      {200, 0.900F, 2.5F, {1.0F, -10.0F, +10.0F, 0.0F}, 105.0},
   };
   /***
   const IterParamsGroup iter1 = {
@@ -328,7 +329,7 @@ auto TentacleDriver::GetNextColorMapGroups() const -> std::vector<ColorMapGroup>
 
   if (ProbabilityOfMInN(1, 2))
   {
-    std::random_shuffle(nextColorMapGroups.begin(), nextColorMapGroups.end());
+    Shuffle(nextColorMapGroups.begin(), nextColorMapGroups.end());
   }
 
   return nextColorMapGroups;
@@ -380,7 +381,7 @@ void TentacleDriver::Update(
   UpdateIterTimers();
   CheckForTimerEvents();
 
-  constexpr float ITER_ZERO_LERP_FACTOR = 0.9;
+  constexpr float ITER_ZERO_LERP_FACTOR = 0.9F;
 
   for (size_t i = 0; i < m_numTentacles; i++)
   {
@@ -412,11 +413,11 @@ inline auto GetBrightnessCut(const Tentacle3D& tentacle, const float distance2) 
   {
     if (distance2 < 8)
     {
-      return 0.5;
+      return 0.5F;
     }
-    return 0.2;
+    return 0.2F;
   }
-  return 1.0;
+  return 1.0F;
 }
 
 constexpr int COORD_IGNORE_VAL = -666;
@@ -634,13 +635,13 @@ auto TentacleColorMapColorizer::GetColor(size_t nodeNum) const -> Pixel
   return nextColor;
 }
 
-[[maybe_unused]] GridTentacleLayout::GridTentacleLayout(const float xmin,
-                                                        const float xmax,
-                                                        const size_t xNum,
-                                                        const float ymin,
-                                                        const float ymax,
-                                                        const size_t yNum,
-                                                        const float zConst)
+GridTentacleLayout::GridTentacleLayout(const float xmin,
+                                       const float xmax,
+                                       const size_t xNum,
+                                       const float ymin,
+                                       const float ymax,
+                                       const size_t yNum,
+                                       const float zConst)
   : m_points{}
 {
   const float xStep = (xmax - xmin) / static_cast<float>(xNum - 1);
@@ -726,15 +727,15 @@ CirclesTentacleLayout::CirclesTentacleLayout(const float radiusMin,
   };
 
   const float angleLeftStart = +m_half_pi;
-  const float angleLeftFinish = 1.5 * m_pi;
+  const float angleLeftFinish = 1.5F * m_pi;
   const float angleRightStart = -m_half_pi;
   const float angleRightFinish = +m_half_pi;
   LogDebug("Setup: angleLeftStart = {:.2f}, angleLeftFinish = {:.2f},"
            " angleRightStart = {:.2f}, angleRightFinish = {:.2f}",
            angleLeftStart, angleLeftFinish, angleRightStart, angleRightFinish);
 
-  const float angleOffsetStart = 0.035 * m_pi;
-  const float angleOffsetFinish = 0.035 * m_pi;
+  const float angleOffsetStart = 0.035F * m_pi;
+  const float angleOffsetFinish = 0.035F * m_pi;
   const float offsetStep =
       (angleOffsetStart - angleOffsetFinish) / static_cast<float>(numCircles - 1);
   const float radiusStep = (radiusMax - radiusMin) / static_cast<float>(numCircles - 1);

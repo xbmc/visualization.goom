@@ -145,8 +145,8 @@ private:
 
   IfsStats m_stats{};
 
-  static constexpr float LOW_DENSITY_GAMMA = 10.0;
-  static constexpr float LOW_DENSITY_GAMMA_THRESHOLD = 0.01;
+  static constexpr float LOW_DENSITY_GAMMA = 10.0F;
+  static constexpr float LOW_DENSITY_GAMMA_THRESHOLD = 0.01F;
   const GammaCorrection m_lowDensityGammaCorrect{LOW_DENSITY_GAMMA, LOW_DENSITY_GAMMA_THRESHOLD};
 
   void ChangeColormaps();
@@ -154,8 +154,7 @@ private:
   static constexpr uint32_t MIN_DENSITY_COUNT = 5;
   uint32_t m_lowDensityCount = MIN_DENSITY_COUNT;
   LowDensityBlurrer m_blurrer;
-  float m_lowDensityBlurThreshold = 0.99;
-  bool m_useRandomLowDensityColors = false;
+  float m_lowDensityBlurThreshold = 0.99F;
   auto BlurLowDensityColors(size_t numPoints, const std::vector<IfsPoint>& lowDensityPoints) const
       -> bool;
   void DrawNextIfsPoints();
@@ -335,9 +334,9 @@ void IfsDancersFx::IfsDancersFxImpl::Renew()
   ChangeColormaps();
   m_colorizer.ChangeColorMode();
 
-  constexpr float MIN_SPEED_AMP = 1.1;
-  constexpr float MAX_SPEED_AMP = 5.1;
-  constexpr float MAX_SPEED_WEIGHT = 10.0;
+  constexpr float MIN_SPEED_AMP = 1.1F;
+  constexpr float MAX_SPEED_AMP = 5.1F;
+  constexpr float MAX_SPEED_WEIGHT = 10.0F;
   const float speedAmp = std::min(GetRandInRange(MIN_SPEED_AMP, MAX_SPEED_WEIGHT), MAX_SPEED_AMP);
   const float accelFactor = 1.0F / (1.2F - m_goomInfo->GetSoundInfo().GetAcceleration());
 
@@ -440,12 +439,12 @@ void IfsDancersFx::IfsDancersFxImpl::UpdateCycle()
 
   if (ProbabilityOfMInN(15, 20))
   {
-    m_lowDensityBlurThreshold = 0.99;
+    m_lowDensityBlurThreshold = 0.99F;
     m_stats.UpdateHighLowDensityBlurThreshold();
   }
   else
   {
-    m_lowDensityBlurThreshold = 0.40;
+    m_lowDensityBlurThreshold = 0.40F;
     m_stats.UpdateLowLowDensityBlurThreshold();
   }
 
@@ -532,7 +531,7 @@ inline void IfsDancersFx::IfsDancersFxImpl::DrawPoint(const IfsPoint& point, con
   const float t = tMix;
   if (point.simi->currentPointBitmap == nullptr)
   {
-    constexpr float BRIGHTNESS = 2.0;
+    constexpr float BRIGHTNESS = 2.0F;
     const Pixel mixedColor = m_colorizer.GetMixedColor(
         point.simi->colorMap->GetColor(t), point.count, BRIGHTNESS, false, tMix, fx, fy);
     const std::vector<Pixel> colors{mixedColor, mixedColor};
@@ -540,7 +539,7 @@ inline void IfsDancersFx::IfsDancersFxImpl::DrawPoint(const IfsPoint& point, con
   }
   else
   {
-    constexpr float BRIGHTNESS = 0.07;
+    constexpr float BRIGHTNESS = 0.07F;
     const Pixel mixedColor = m_colorizer.GetMixedColor(point.simi->colorMap->GetColor(t),
                                                        point.count, BRIGHTNESS, true, tMix, fx, fy);
     const std::vector<Pixel> colors{mixedColor, mixedColor};
@@ -576,7 +575,7 @@ void IfsDancersFx::IfsDancersFxImpl::SetLowDensityColors(std::vector<IfsPoint>& 
   {
     const float logAlpha =
         point.count <= 1 ? 1.0F : std::log(static_cast<float>(point.count)) / logMaxLowDensityCount;
-    constexpr float BRIGHTNESS = 1.0;
+    constexpr float BRIGHTNESS = 1.0F;
     const Pixel color = m_lowDensityGammaCorrect.GetCorrection(BRIGHTNESS * logAlpha,
                                                                point.simi->colorMap->GetColor(t));
     m_draw->DrawPixelsUnblended(static_cast<int32_t>(point.x), static_cast<int32_t>(point.y),

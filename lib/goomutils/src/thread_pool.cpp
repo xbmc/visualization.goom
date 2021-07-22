@@ -82,7 +82,7 @@ void ThreadPool::ThreadLoop()
   {
     WorkItem workItem{};
 
-    int prevWorkSize = -1;
+    int32_t prevWorkSize = -1;
     {
       std::unique_lock<std::mutex> lock{m_mutex};
       m_newWorkCondition.wait(lock, [this] { return m_finished || (!m_workQueue.empty()); });
@@ -95,7 +95,7 @@ void ThreadPool::ThreadLoop()
 
       // Pop the work off of the queue - we are careful to execute the
       // work_item.func callback only after we have released the lock.
-      prevWorkSize = m_workQueue.size();
+      prevWorkSize = static_cast<int32_t>(m_workQueue.size());
       workItem = std::move(m_workQueue.front());
       m_workQueue.pop();
     }

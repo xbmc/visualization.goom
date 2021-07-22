@@ -42,7 +42,7 @@ public:
   void Line(
       int x1, int y1, int x2, int y2, const std::vector<Pixel>& colors, uint8_t thickness) const;
 
-  using GetBitmapColorFunc = std::function<auto(size_t x, size_t y, const Pixel& b)->Pixel>;
+  using GetBitmapColorFunc = std::function<Pixel(size_t x, size_t y, const Pixel& b)>;
   void Bitmap(int xCentre,
               int yCentre,
               const PixelBuffer& bitmap,

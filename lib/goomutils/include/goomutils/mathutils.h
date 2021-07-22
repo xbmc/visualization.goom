@@ -123,13 +123,13 @@ namespace GOOM::UTILS
 #endif
 
 #if __cplusplus <= 201703L
-constexpr float m_pi = 3.14159265358979323846264;
+constexpr float m_pi = 3.14159265358979323846264F;
 #else
 constexpr float m_pi = std::numbers::pi;
 #endif
-constexpr float m_two_pi = 2.0 * m_pi;
-constexpr float m_half_pi = 0.5 * m_pi;
-constexpr float m_third_pi = m_pi / 3.0;
+constexpr float m_two_pi = 2.0F * m_pi;
+constexpr float m_half_pi = 0.5F * m_pi;
+constexpr float m_third_pi = m_pi / 3.0F;
 
 template<typename T>
 constexpr auto Sq(const T& x) -> T

@@ -27,9 +27,9 @@ using UTILS::ProbabilityOf;
 using UTILS::ProbabilityOfMInN;
 using UTILS::Weights;
 
-constexpr float PROB_HIGH = 0.9;
-constexpr float PROB_HALF = 0.5;
-constexpr float PROB_LOW = 0.1;
+constexpr float PROB_HIGH = 0.9F;
+constexpr float PROB_HALF = 0.5F;
+constexpr float PROB_LOW = 0.1F;
 
 //@formatter:off
 // clang-format off

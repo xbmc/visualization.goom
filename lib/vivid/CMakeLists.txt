@@ -33,12 +33,16 @@ add_library( vivid STATIC
     src/xyz.cpp
 )
 
-add_library(libs::vivid ALIAS ${PROJECT_NAME})
+add_library(libs::vivid ALIAS vivid)
 
-target_compile_options ( vivid
-        PRIVATE
-            -Wall -Wextra -pedantic -Wno-effc++ -Wno-sign-conversion
-        )
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CMAKE_COMMON_CXX_WARNINGS ${CMAKE_COMMON_CXX_WARNINGS} -Wno-effc++ -Wno-sign-conversion)
+endif()
+
+target_compile_options( vivid
+    PRIVATE
+        ${CMAKE_COMMON_CXX_WARNINGS}
+)
 
 target_compile_features( vivid
 #    PUBLIC
@@ -66,7 +70,7 @@ target_include_directories( vivid
 set_target_properties( vivid
     PROPERTIES
         CXX_STANDARD ${CPP_STANDARD}
-        POSITION_INDEPENDENT_CODE ON
+        POSITION_INDEPENDENT_CODE ${POS_INDEP_CODE}
 )
 
 ################################################################################
@@ -77,3 +81,4 @@ add_subdirectory(examples/cmake)
 add_subdirectory(tests)
 
 message(STATUS "Vivid C++ standard = \"${CPP_STANDARD}\".")
+message(STATUS "Vivid C++ warnings = \"${CMAKE_COMMON_CXX_WARNINGS}\".")
