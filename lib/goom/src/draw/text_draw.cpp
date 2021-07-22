@@ -10,9 +10,11 @@
 #include <codecvt>
 #include <format>
 #include <fstream>
+#ifndef NO_FREETYPE_INSTALLED
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_STROKER_H
+#endif
 #include <locale>
 #include <numeric>
 
@@ -28,6 +30,117 @@ namespace GOOM::DRAW
 
 using UTILS::Logging;
 
+#ifdef NO_FREETYPE_INSTALLED
+class TextDraw::TextDrawImpl
+{
+public:
+  explicit TextDrawImpl(const IGoomDraw* draw) noexcept;
+  ~TextDrawImpl() noexcept;
+  TextDrawImpl(const TextDrawImpl&) noexcept = delete;
+  TextDrawImpl(TextDrawImpl&&) noexcept = delete;
+  auto operator=(const TextDrawImpl&) -> TextDrawImpl& = delete;
+  auto operator=(TextDrawImpl&&) -> TextDrawImpl& = delete;
+
+  void SetAlignment(TextAlignment a);
+  [[nodiscard]] auto GetFontFile() const -> const std::string&;
+  void SetFontFile(const std::string& filename);
+  void SetFontSize(int32_t val);
+  void SetOutlineWidth(float val);
+  void SetCharSpacing(float val);
+  void SetText(const std::string& str);
+
+  void SetFontColorFunc(const FontColorFunc& f);
+  void SetOutlineFontColorFunc(const FontColorFunc& f);
+
+  void Prepare();
+  [[nodiscard]] auto GetPreparedTextBoundingRect() const -> Rect;
+  [[nodiscard]] auto GetBearingX() const -> int;
+  [[nodiscard]] auto GetBearingY() const -> int;
+
+  void Draw(int32_t xPen, int32_t yPen);
+  void Draw(int32_t xPen, int32_t yPen, int32_t& xNext, int32_t& yNext);
+private:
+  std::string m_fontFilename{};
+};
+
+TextDraw::TextDrawImpl::TextDrawImpl(const IGoomDraw* const) noexcept
+{
+}
+
+TextDraw::TextDrawImpl::~TextDrawImpl() noexcept
+{
+}
+
+inline void TextDraw::TextDrawImpl::SetAlignment(const TextAlignment)
+{
+}
+
+inline auto TextDraw::TextDrawImpl::GetFontFile() const -> const std::string&
+{
+  return m_fontFilename;
+}
+
+void TextDraw::TextDrawImpl::SetFontFile(const std::string& filename)
+{
+  m_fontFilename = filename;
+}
+
+void TextDraw::TextDrawImpl::SetFontSize(const int32_t)
+{
+}
+
+void TextDraw::TextDrawImpl::SetOutlineWidth(const float)
+{
+}
+
+void TextDraw::TextDrawImpl::SetCharSpacing(const float)
+{
+}
+
+void TextDraw::TextDrawImpl::SetText(const std::string&)
+{
+}
+
+void TextDraw::TextDrawImpl::SetFontColorFunc(const FontColorFunc&)
+{
+}
+
+void TextDraw::TextDrawImpl::SetOutlineFontColorFunc(const FontColorFunc&)
+{
+}
+
+void TextDraw::TextDrawImpl::Prepare()
+{
+}
+
+inline void TextDraw::TextDrawImpl::Draw(const int32_t, const int32_t)
+{
+}
+
+void TextDraw::TextDrawImpl::Draw(const int32_t,
+                                  const int32_t,
+                                  int32_t&,
+                                  int32_t&)
+{
+}
+
+inline auto TextDraw::TextDrawImpl::GetPreparedTextBoundingRect() const -> TextDraw::Rect
+{
+    return Rect{};
+}
+
+inline auto TextDraw::TextDrawImpl::GetBearingX() const -> int32_t
+{
+    return 1;
+}
+
+inline auto TextDraw::TextDrawImpl::GetBearingY() const -> int32_t
+{
+    return 1;
+}
+#endif
+
+#ifndef NO_FREETYPE_INSTALLED
 class TextDraw::TextDrawImpl
 {
 public:
@@ -126,9 +239,8 @@ private:
                          int32_t yPen,
                          size_t textIndexOfChar,
                          const FontColorFunc& getColor) const;
-  //void WriteGlyphSimple(wchar_t ch, int32_t xPen, int32_t yPen, int32_t& advance, PixelBuffer& buff);
-  //void DrawBitmap(FT_Bitmap* bitmap, FT_Int x, FT_Int y, wchar_t ch, PixelBuffer& buff) const;
 };
+#endif
 
 TextDraw::TextDraw(const IGoomDraw* const draw) noexcept : m_textDrawImpl{new TextDrawImpl{draw}}
 {
@@ -211,6 +323,7 @@ void TextDraw::Draw(const int32_t xPen, const int32_t yPen, int32_t& xNext, int3
   m_textDrawImpl->Draw(xPen, yPen, xNext, yNext);
 }
 
+#ifndef NO_FREETYPE_INSTALLED
 TextDraw::TextDrawImpl::TextDrawImpl(const IGoomDraw* const draw) noexcept : m_draw{draw}
 {
   (void)FT_Init_FreeType(&m_library);
@@ -656,76 +769,7 @@ auto TextDraw::TextDrawImpl::GetBoundingRect(const SpanArray& stdSpans,
 
   return rect;
 }
-
-/***
-void TextDraw::TextDrawImpl::WriteGlyphSimple(
-    const wchar_t ch, const int xPen, const int yPen, int& advance, PixelBuffer& buff)
-{
-  // Set the size to use.
-  if (FT_Set_Char_Size(m_face, toFreeTypeCoord(m_fontSize), toFreeTypeCoord(m_fontSize),
-                       m_horizontalResolution, m_verticalResolution) != 0)
-  {
-    throw std::runtime_error(std20::format("Could not set font size to {}.", m_fontSize));
-  }
-
-  const float angle = (25.0F / 360.0F) * 3.14159F * 2; // use 25 degrees
-
-  FT_GlyphSlot slot = face->glyph;
-
-  FT_Matrix matrix;
-  matrix.xx = (FT_Fixed)(+std::cos(angle) * 0x10000L);
-  matrix.xy = (FT_Fixed)(-std::sin(angle) * 0x10000L);
-  matrix.yx = (FT_Fixed)(+std::sin(angle) * 0x10000L);
-  matrix.yy = (FT_Fixed)(+std::cos(angle) * 0x10000L);
-
-  FT_Vector pen{ToFreeTypeCoord(xPen), ToFreeTypeCoord(yPen)};
-  FT_Set_Transform(m_face, &matrix, &pen);
-
-  // load glyph image into the slot (erase previous one)
-  if (FT_Load_Char(m_face, static_cast<FT_ULong>(ch), FT_LOAD_RENDER))
-  {
-    throw std::runtime_error(std20::format("Could not load face for '{}'.", static_cast<char>(ch)));
-  }
-
-  // now, draw to our target surface (convert position)
-  DrawBitmap(&slot->bitmap, slot->bitmap_left, m_screenHeight - slot->bitmap_top, ch, buff);
-
-  advance = ToStdPixelCoord(slot->advance.x);
-}
-
-void TextDraw::TextDrawImpl::DrawBitmap(
-    FT_Bitmap* bitmap, const FT_Int x, const FT_Int y, const wchar_t ch, PixelBuffer& buff) const
-{
-  const auto xMax = static_cast<uint32_t>(x) + bitmap->width;
-  const auto yMax = static_cast<uint32_t>(y) + bitmap->rows;
-
-  // for simplicity, we assume that `bitmap->pixel_mode'
-  // is `FT_PIXEL_MODE_GRAY' (i.e., not a bitmap font)
-
-  for (int i = x, p = 0; i < static_cast<int>(xMax); i++, p++)
-  {
-    for (int j = y, q = 0; j < static_cast<int>(yMax); j++, q++)
-    {
-      if (i < 0 || j < 0 || i >= m_screenWidth || j >= m_screenHeight)
-      {
-        continue;
-      }
-
-      const int color =
-          bitmap->buffer[static_cast<size_t>(q * static_cast<int>(bitmap->width) + p)];
-      if (color == 0)
-      {
-        buff(static_cast<size_t>(i), static_cast<size_t>(j)) = Pixel::BLACK;
-      }
-      else
-      {
-        buff(static_cast<size_t>(i), static_cast<size_t>(j)) =
-            m_getFontColor(ch, p, q, bitmap->width, bitmap->rows);
-      }
-    }
-  }
-}
-**/
+#endif
 
 #if __cplusplus <= 201402L
 } // namespace DRAW
