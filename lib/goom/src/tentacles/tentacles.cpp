@@ -167,7 +167,7 @@ void Tentacle2D::Iterate()
 
 void Tentacle2D::UpdateDampedVals(const std::vector<double>& yVals)
 {
-  constexpr size_t NUM_SMOOTH_NODES = std::min(10UL, MIN_NUM_NODES);
+  constexpr size_t NUM_SMOOTH_NODES = std::min(size_t(10), MIN_NUM_NODES);
   const auto tSmooth = [](const double t) { return t * (2.0 - t); };
 
   const double tStep = 1.0 / (NUM_SMOOTH_NODES - 1);

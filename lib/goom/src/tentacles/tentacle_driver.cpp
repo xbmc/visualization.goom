@@ -193,10 +193,9 @@ auto TentacleDriver::CreateNewTentacle2D(size_t id, const IterationParams& p)
 {
   LogDebug("Creating new tentacle2D {}...", id);
 
-  const size_t tentacleLen = std::max(
-      1LU, static_cast<size_t>(GetRandInRange(0.99F, 1.01F) * static_cast<float>(p.length)));
+  const float tentacleLen =
+      std::max(1.0F, GetRandInRange(0.99F, 1.01F) * static_cast<float>(p.length));
   assert(tentacleLen >= 1);
-  //const size_t tentacleLen = params.length;
   const double tent2d_xmax = TENT2D_XMIN + static_cast<double>(tentacleLen);
   assert(tent2d_xmax >= 1.0F);
 
@@ -308,7 +307,7 @@ auto TentacleDriver::GetNextColorMapGroups() const -> std::vector<ColorMapGroup>
       (m_colorMode == ColorModes::minimal || m_colorMode == ColorModes::oneGroupForAll ||
        ProbabilityOfMInN(99, 100))
           ? 1
-          : GetRandInRange(1U, std::min(size_t(5U), m_colorizers.size()));
+          : GetRandInRange(1U, std::min(size_t(5), m_colorizers.size()));
   std::vector<ColorMapGroup> groups(numDifferentGroups);
   for (size_t i = 0; i < numDifferentGroups; i++)
   {

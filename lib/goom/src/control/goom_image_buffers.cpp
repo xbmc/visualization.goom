@@ -16,18 +16,18 @@ namespace GOOM::CONTROL
 #endif
 
 
-GoomImageBuffers::GoomImageBuffers(const uint32_t resx, const uint32_t resy) noexcept
+GoomImageBuffers::GoomImageBuffers(const uint32_t width, const uint32_t height) noexcept
 {
-  SetResolution(resx, resy);
+  SetResolution(width, height);
 }
 
 GoomImageBuffers::~GoomImageBuffers() noexcept = default;
 
-void GoomImageBuffers::SetResolution(const uint32_t resx, const uint32_t resy)
+void GoomImageBuffers::SetResolution(const uint32_t width, const uint32_t height)
 {
   for (auto& b : m_buffs)
   {
-    b = std::make_unique<PixelBuffer>(resx, resy);
+    b = std::make_unique<PixelBuffer>(width, height);
   }
 
   m_p1 = m_buffs[0].get();

@@ -12,6 +12,8 @@ if(WIN32)
     add_definitions(-D_WIN32PC)
 endif()
 
+find_package(Threads)
+
 add_executable(goomtests
     src/test_main.cpp
     src/test_colorutils.cpp
@@ -26,7 +28,7 @@ target_link_libraries(goomtests
         goom
         goomutils
         vivid
-        pthread
+        ${CMAKE_THREAD_LIBS_INIT}
 )
 
 target_include_directories(goomtests

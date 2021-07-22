@@ -1,6 +1,7 @@
 #ifndef VISUALIZATION_GOOM_GOOM_IMAGE_BUFFERS_H
 #define VISUALIZATION_GOOM_GOOM_IMAGE_BUFFERS_H
 
+#include <array>
 #include <cstdint>
 #include <memory>
 
@@ -21,14 +22,14 @@ class GoomImageBuffers
 {
 public:
   GoomImageBuffers() noexcept = delete;
-  GoomImageBuffers(uint32_t resx, uint32_t resy) noexcept;
+  GoomImageBuffers(uint32_t width, uint32_t height) noexcept;
   ~GoomImageBuffers() noexcept;
   GoomImageBuffers(const GoomImageBuffers&) noexcept = delete;
   GoomImageBuffers(GoomImageBuffers&&) noexcept = delete;
   auto operator=(const GoomImageBuffers&) -> GoomImageBuffers& = delete;
   auto operator=(GoomImageBuffers&&) -> GoomImageBuffers& = delete;
 
-  void SetResolution(uint32_t resx, uint32_t resy);
+  void SetResolution(uint32_t width, uint32_t height);
 
   [[nodiscard]] auto GetP1() const -> PixelBuffer& { return *m_p1; }
   [[nodiscard]] auto GetP2() const -> PixelBuffer& { return *m_p2; }

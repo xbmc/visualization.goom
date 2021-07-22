@@ -70,7 +70,7 @@ constexpr auto clamp(const uint32_t x, const uint32_t lo, const uint32_t hi) -> 
   }
   return x;
 }
-constexpr auto clamp(const size_t x, const size_t lo, const size_t hi) -> size_t
+constexpr auto clamp(const uint64_t x, const size_t lo, const uint64_t hi) -> uint64_t
 {
   if (x < lo)
   {
