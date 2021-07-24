@@ -30,7 +30,7 @@ public:
 
   auto GetStandardVelocity(float sqDistFromZero, const NormalizedCoords& coords) const
       -> NormalizedCoords;
-  auto GetCleanedVelocity(const NormalizedCoords& velocity) const -> NormalizedCoords;
+  static auto GetCleanedVelocity(const NormalizedCoords& velocity) -> NormalizedCoords;
   auto GetRotatedVelocity(const NormalizedCoords& velocity) const -> NormalizedCoords;
   auto GetNoiseVelocity() const -> NormalizedCoords;
   auto GetTanEffectVelocity(float sqDistFromZero, const NormalizedCoords& velocity) const

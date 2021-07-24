@@ -7,7 +7,6 @@
 
 #include <memory>
 
-#if __cplusplus <= 201402L
 namespace GOOM
 {
 
@@ -16,15 +15,6 @@ struct ZoomFilterData;
 
 namespace FILTERS
 {
-#else
-namespace GOOM
-{
-class FilterStats;
-struct ZoomFilterData;
-}; // namespace GOOM
-namespace GOOM::FILTERS
-{
-#endif
 
 class ZoomVectorEffects;
 
@@ -60,11 +50,7 @@ private:
   void UpdateDoZoomVectorVPlaneEffectStats() const;
 };
 
-#if __cplusplus <= 201402L
 } // namespace FILTERS
 } // namespace GOOM
-#else
-} // namespace GOOM::FILTERS
-#endif
 
 #endif //VISUALIZATION_GOOM_FILTER_ZOOM_VECTOR_H

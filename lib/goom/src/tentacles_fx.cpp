@@ -156,11 +156,14 @@ private:
   void SetDriverRandomColorMaps();
   void InitData();
   mutable TentacleStats m_stats{};
+  void DoTentaclesUpdate();
+  void DoPrettyMoveBeforeDraw();
+  void DoPrettyMoveWithoutDraw();
 };
 
 TentaclesFx::TentaclesFx(const IGoomDraw* const draw,
                          const std::shared_ptr<const PluginInfo>& info) noexcept
-  : m_fxImpl{new TentaclesImpl{draw, info}}
+  : m_fxImpl{std::make_unique<TentaclesImpl>(draw, info)}
 {
 }
 
@@ -316,7 +319,6 @@ void TentaclesFx::TentaclesImpl::FreshStart()
 
 void TentaclesFx::TentaclesImpl::SetupDrivers()
 {
-  // const GridTentacleLayout layout{ -100, 100, xRowLen, -100, 100, numXRows, 0 };
   if (NUM_DRIVERS != m_layouts.size())
   {
     throw std::logic_error("numDrivers != layouts.size()");
@@ -332,7 +334,7 @@ colorMaps.setWeights(colorGroupWeights);
 
   for (size_t i = 0; i < NUM_DRIVERS; i++)
   {
-    (void)m_drivers.emplace_back(new TentacleDriver{m_draw});
+    (void)m_drivers.emplace_back(std::make_unique<TentacleDriver>(m_draw));
   }
 
   if (NUM_DRIVERS != m_driverWeights.GetNumElements())
@@ -435,86 +437,100 @@ void TentaclesFx::TentaclesImpl::Update()
 
   if (m_lig <= 1.01F)
   {
-    m_lig = 1.05F;
-    if (m_ligs < 0.0F)
-    {
-      m_ligs = -m_ligs;
-    }
-
-    LogDebug("Starting pretty_move without draw.");
-    m_stats.UpdateWithPrettyMoveNoDraw();
-    PrettyMove(m_goomInfo->GetSoundInfo().GetAcceleration());
-
-    m_cycle += 10.0F * m_cycleInc;
-    if (m_cycle > 1000.0F)
-    {
-      m_stats.CycleReset();
-      m_cycle = 0.0;
-    }
+    DoPrettyMoveWithoutDraw();
   }
   else
   {
-    if ((m_lig > 10.0F) || (m_lig < 1.1F))
-    {
-      m_ligs = -m_ligs;
-    }
-
-    LogDebug("Starting pretty_move and draw.");
-    m_stats.UpdateWithPrettyMoveDraw();
-    PrettyMove(m_goomInfo->GetSoundInfo().GetAcceleration());
-    m_cycle += m_cycleInc;
-
-    if (m_isPrettyMoveHappening || ChangeDominantColorMapEvent())
-    {
-      // IMPORTANT. Very delicate here - seems the right time to change maps.
-      m_stats.ChangeDominantColorMap();
-      m_dominantColorMap = m_colorMaps->GetRandomColorMapPtr(RandomColorMaps::ALL);
-    }
-
-    if ((m_isPrettyMoveHappening || (m_lig < 6.3F)) && ChangeDominantColorEvent())
-    {
-      ChangeDominantColor();
-      m_countSinceColorChangeLastMarked = 0;
-    }
-
-#if __cplusplus <= 201402L
-    const auto modColors = GetModColors();
-    const auto modColor = std::get<0>(modColors);
-    const auto modLowColor = std::get<1>(modColors);
-#else
-    const auto [modColor, modLowColor] = GetModColors();
-#endif
-
-    if (m_goomInfo->GetSoundInfo().GetTimeSinceLastGoom() != 0)
-    {
-      m_stats.LowToMediumAcceleration();
-    }
-    else
-    {
-      m_stats.HighAcceleration();
-      if (m_countSinceHighAccelLastMarked > 100)
-      {
-        m_countSinceHighAccelLastMarked = 0;
-        if (m_countSinceColorChangeLastMarked > 100)
-        {
-          ChangeDominantColor();
-          m_countSinceColorChangeLastMarked = 0;
-        }
-      }
-    }
-
-    // Higher sound acceleration increases tentacle wave frequency.
-    assert(m_currentDriver);
-    const float tentacleWaveFreq =
-        m_goomInfo->GetSoundInfo().GetAcceleration() < 0.3
-            ? 1.25F
-            : 1.0F / (1.10F - m_goomInfo->GetSoundInfo().GetAcceleration());
-    m_currentDriver->MultiplyIterZeroYValWaveFreq(tentacleWaveFreq);
-
-    m_currentDriver->Update(m_half_pi - m_rot, m_distt, m_distt2, modColor, modLowColor);
+    DoPrettyMoveBeforeDraw();
+    DoTentaclesUpdate();
   }
 
   m_stats.UpdateEnd();
+}
+
+void TentaclesFx::TentaclesImpl::DoPrettyMoveWithoutDraw()
+{
+  m_lig = 1.05F;
+  if (m_ligs < 0.0F)
+  {
+    m_ligs = -m_ligs;
+  }
+
+  LogDebug("Starting pretty_move without draw.");
+  m_stats.UpdateWithPrettyMoveNoDraw();
+  PrettyMove(m_goomInfo->GetSoundInfo().GetAcceleration());
+
+  m_cycle += 10.0F * m_cycleInc;
+  if (m_cycle > 1000.0F)
+  {
+    m_stats.CycleReset();
+    m_cycle = 0.0;
+  }
+}
+
+void TentaclesFx::TentaclesImpl::DoPrettyMoveBeforeDraw()
+{
+  if ((m_lig > 10.0F) || (m_lig < 1.1F))
+  {
+    m_ligs = -m_ligs;
+  }
+
+  LogDebug("Starting pretty_move and draw.");
+  m_stats.UpdateWithPrettyMoveDraw();
+  PrettyMove(m_goomInfo->GetSoundInfo().GetAcceleration());
+  m_cycle += m_cycleInc;
+
+  if (m_isPrettyMoveHappening || ChangeDominantColorMapEvent())
+  {
+    // IMPORTANT. Very delicate here - seems the right time to change maps.
+    m_stats.ChangeDominantColorMap();
+    m_dominantColorMap = m_colorMaps->GetRandomColorMapPtr(RandomColorMaps::ALL);
+  }
+
+  if ((m_isPrettyMoveHappening || (m_lig < 6.3F)) && ChangeDominantColorEvent())
+  {
+    ChangeDominantColor();
+    m_countSinceColorChangeLastMarked = 0;
+  }
+}
+
+void TentaclesFx::TentaclesImpl::DoTentaclesUpdate()
+{
+#if __cplusplus <= 201402L
+  const auto modColors = GetModColors();
+  const auto modColor = std::get<0>(modColors);
+  const auto modLowColor = std::get<1>(modColors);
+#else
+  const auto [modColor, modLowColor] = GetModColors();
+#endif
+
+  if (m_goomInfo->GetSoundInfo().GetTimeSinceLastGoom() != 0)
+  {
+    m_stats.LowToMediumAcceleration();
+  }
+  else
+  {
+    m_stats.HighAcceleration();
+    if (m_countSinceHighAccelLastMarked > 100)
+    {
+      m_countSinceHighAccelLastMarked = 0;
+      if (m_countSinceColorChangeLastMarked > 100)
+      {
+        ChangeDominantColor();
+        m_countSinceColorChangeLastMarked = 0;
+      }
+    }
+  }
+
+  // Higher sound acceleration increases tentacle wave frequency.
+  assert(m_currentDriver);
+  const float tentacleWaveFreq =
+      m_goomInfo->GetSoundInfo().GetAcceleration() < 0.3F
+          ? 1.25F
+          : 1.0F / (1.10F - m_goomInfo->GetSoundInfo().GetAcceleration());
+  m_currentDriver->MultiplyIterZeroYValWaveFreq(tentacleWaveFreq);
+
+  m_currentDriver->Update(m_half_pi - m_rot, m_distt, m_distt2, modColor, modLowColor);
 }
 
 void TentaclesFx::TentaclesImpl::ChangeDominantColor()
@@ -564,13 +580,6 @@ void TentaclesFx::TentaclesImpl::PrettyMoveStart(const float acceleration, const
   m_rotAtStartOfPrettyMove = m_rot;
   m_cycleInc = GetRandInRange(CYCLE_INC_MIN, CYCLE_INC_MAX);
 }
-
-/****
-inline float getRapport(const float accelvar)
-{
-  return std::min(1.12f, 1.2f * (1.0f + 2.0f * (accelvar - 1.0f)));
-}
-****/
 
 void TentaclesFx::TentaclesImpl::PrettyMoveFinish()
 {
@@ -653,15 +662,15 @@ void TentaclesFx::TentaclesImpl::PrettyMove(const float acceleration)
   m_distt2 = stdnew::lerp(m_distt2, m_distt2Offset, m_prettyMoveLerpMix);
 
   // Bigger offset here means tentacles start further back behind screen.
-  float disttOffset = static_cast<float>(
-      stdnew::lerp(DISTT_MIN, DISTT_MAX, 0.5 * (1.0 - sin(m_cycle * 19.0 / 20.0))));
+  auto disttOffset = static_cast<float>(
+      stdnew::lerp(DISTT_MIN, DISTT_MAX, 0.5 * (1.0 - std::sin(m_cycle * 19.0 / 20.0))));
   if (m_isPrettyMoveHappening)
   {
     disttOffset *= 0.6F;
   }
   m_distt = stdnew::lerp(m_distt, disttOffset, 4.0F * m_prettyMoveLerpMix);
 
-  float rotOffset = 0.0;
+  float rotOffset = 0.0F;
   if (!m_isPrettyMoveHappening)
   {
     rotOffset = GetStableRotationOffset(m_cycle);
@@ -690,14 +699,14 @@ void TentaclesFx::TentaclesImpl::PrettyMove(const float acceleration)
     if (m_prettyMoveHappeningTimer < m_prettyMoveCheckStopMark)
     {
       // If close enough to initialStableRotationOffset, then stop the happening.
-      if (std::fabs(m_rot - m_rotAtStartOfPrettyMove) < 0.1)
+      if (std::fabs(m_rot - m_rotAtStartOfPrettyMove) < 0.1F)
       {
         m_isPrettyMoveHappening = false;
         PrettyMoveFinish();
       }
     }
 
-    if (!(0.0 <= rotOffset && rotOffset <= m_two_pi))
+    if (!(0.0F <= rotOffset && rotOffset <= m_two_pi))
     {
       throw std::logic_error(std20::format(
           "rotOffset {:.3f} not in [0, 2pi]: currentCycle = {:.3f}", rotOffset, currentCycle));

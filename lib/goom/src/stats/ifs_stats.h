@@ -17,7 +17,9 @@ public:
 
   void Reset();
   void Log(const GoomStats::LogStatsValueFunc& l) const;
-  void UpdateStart();
+  void UpdateInit();
+  void UpdateRenew();
+  void UpdateBegin();
   void UpdateEnd();
 
   void UpdateIfsIncr(int val);
@@ -30,7 +32,9 @@ public:
   void UpdateHighLowDensityBlurThreshold();
 
 private:
+  uint32_t m_numInits = 0;
   uint32_t m_numUpdates = 0;
+  uint32_t m_numRenews = 0;
   uint64_t m_totalTimeInUpdatesMs = 0;
   uint32_t m_minTimeInUpdatesMs = std::numeric_limits<uint32_t>::max();
   uint32_t m_maxTimeInUpdatesMs = 0;

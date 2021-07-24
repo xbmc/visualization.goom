@@ -47,10 +47,9 @@ public:
   [[nodiscard]] auto GetMixedColor(const Pixel& baseColor,
                                    uint32_t hitCount,
                                    float brightness,
-                                   bool lowGamma,
                                    float tMix,
-                                   float x,
-                                   float y) -> Pixel;
+                                   float tX,
+                                   float tY) const -> Pixel;
 
 private:
   std::shared_ptr<UTILS::RandomColorMaps> m_colorMaps{};
@@ -73,15 +72,12 @@ private:
   static constexpr float INITIAL_T_AWAY_FROM_BASE_COLOR = 0.0F;
   float m_tAwayFromBaseColor = INITIAL_T_AWAY_FROM_BASE_COLOR; // in [0, 1]
   static auto GetNextColorMode() -> IfsDancersFx::ColorMode;
-  [[nodiscard]] auto GetNextMixerMapColor(float t, float x, float y) const -> Pixel;
+  [[nodiscard]] auto GetNextMixerMapColor(float t, float tX, float tY) const -> Pixel;
 
-  static constexpr float MAIN_GAMMA = 10.0F;
-  static constexpr float MAIN_GAMMA_THRESHOLD = 0.01F;
-  const UTILS::GammaCorrection m_mainGammaCorrect{MAIN_GAMMA, MAIN_GAMMA_THRESHOLD};
-
-  static constexpr float LOW_GAMMA = 4.0F;
-  static constexpr float LOW_GAMMA_THRESHOLD = 0.01F;
-  const UTILS::GammaCorrection m_lowGammaCorrect{LOW_GAMMA, LOW_GAMMA_THRESHOLD};
+  static constexpr float GAMMA = 1.5F;
+  static constexpr float GAMMA_BRIGHTNESS_THRESHOLD = 0.01F;
+  const UTILS::GammaCorrection m_gammaCorrect{GAMMA, GAMMA_BRIGHTNESS_THRESHOLD};
+  auto GetGammaCorrection(float brightness, const Pixel& color) const -> Pixel;
 };
 
 inline auto Colorizer::GetColorMaps() const -> const UTILS::RandomColorMaps&

@@ -39,8 +39,8 @@ public:
   void IncX();
   void IncY();
 
-  auto GetX() const -> float;
-  auto GetY() const -> float;
+  [[nodiscard]] auto GetX() const -> float;
+  [[nodiscard]] auto GetY() const -> float;
   void SetX(float xNormalized);
   void SetY(float yNormalized);
 
@@ -54,12 +54,14 @@ private:
   static float s_minNormalizedCoordVal;
   V2dFlt m_normalizedCoords;
 
-  static auto NormalizedToScreenCoordsFlt(const V2dFlt& normalizedCoords) -> V2dFlt;
-  static auto ScreenToNormalizedCoords(const V2dInt& screenCoords) -> V2dFlt;
+  [[nodiscard]] static auto NormalizedToScreenCoordsFlt(const V2dFlt& normalizedCoords) -> V2dFlt;
+  [[nodiscard]] static auto ScreenToNormalizedCoords(const V2dInt& screenCoords) -> V2dFlt;
 };
 
-auto operator+(const NormalizedCoords& c1, const NormalizedCoords& c2) -> NormalizedCoords;
-auto operator-(const NormalizedCoords& c1, const NormalizedCoords& c2) -> NormalizedCoords;
+auto operator+(const NormalizedCoords& c1, const NormalizedCoords& c2)
+    -> NormalizedCoords;
+auto operator-(const NormalizedCoords& c1, const NormalizedCoords& c2)
+    -> NormalizedCoords;
 auto operator*(float scalar, const NormalizedCoords& c) -> NormalizedCoords;
 
 inline auto NormalizedCoords::NormalizedToScreenCoordsFlt(const V2dFlt& normalizedCoords) -> V2dFlt
@@ -161,22 +163,19 @@ inline auto NormalizedCoords::operator*=(float scalar) -> NormalizedCoords&
 inline auto operator+(const NormalizedCoords& c1, const NormalizedCoords& c2) -> NormalizedCoords
 {
   NormalizedCoords c3{c1};
-  c3 += c2;
-  return c3;
+  return c3 += c2;
 }
 
 inline auto operator-(const NormalizedCoords& c1, const NormalizedCoords& c2) -> NormalizedCoords
 {
   NormalizedCoords c3{c1};
-  c3 -= c2;
-  return c3;
+  return c3 -= c2;
 }
 
 inline auto operator*(const float scalar, const NormalizedCoords& c) -> NormalizedCoords
 {
   NormalizedCoords c1{c};
-  c1 *= scalar;
-  return c1;
+  return c1 *= scalar;
 }
 
 #if __cplusplus <= 201402L

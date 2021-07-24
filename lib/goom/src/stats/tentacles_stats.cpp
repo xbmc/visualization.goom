@@ -172,7 +172,7 @@ void TentacleStats::PrettyMoveHappens()
 
 void TentacleStats::SetLastNumTentacles(const size_t val)
 {
-  m_lastNumTentacles = val;
+  m_lastNumTentacles = static_cast<uint32_t>(val);
 }
 
 void TentacleStats::SetLastUpdatingWithDraw(const bool val)
@@ -283,7 +283,7 @@ void TentacleStats::SetNumTentacleDrivers(
   }
 }
 
-void TentacleStats::ChangeTentacleDriver(const uint32_t driverIndex)
+void TentacleStats::ChangeTentacleDriver(const size_t driverIndex)
 {
   m_numDriverChanges.at(driverIndex)++;
 }

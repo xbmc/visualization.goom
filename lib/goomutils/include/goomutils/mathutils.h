@@ -10,6 +10,7 @@
 #if __cplusplus > 201703L
 #include <numbers>
 #endif
+#include <cmath>
 #include <tuple>
 #include <vector>
 
@@ -37,13 +38,18 @@ constexpr _Fp __lerp(_Fp __a, _Fp __b, _Fp __t) noexcept
                                   : (__b > __x ? __x : __b); // monotonic near __t=1
 }
 
-constexpr float lerp(float __a, float __b, float __t) noexcept
+constexpr float lerp(const float __a, const float __b, const float __t) noexcept
 {
   return __lerp(__a, __b, __t);
 }
-constexpr double lerp(double __a, double __b, double __t) noexcept
+constexpr double lerp(const double __a, const double __b, const double __t) noexcept
 {
   return __lerp(__a, __b, __t);
+}
+inline uint32_t lerp(const uint32_t a, const uint32_t b, const float t) noexcept
+{
+  return static_cast<uint32_t>(
+      std::round(stdnew::lerp(static_cast<float>(a), static_cast<float>(b), t)));
 }
 
 constexpr auto clamp(const int x, const int lo, const int hi) -> int

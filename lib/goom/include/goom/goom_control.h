@@ -22,7 +22,7 @@ public:
   static void SetRandSeed(uint64_t seed);
 
   GoomControl() noexcept = delete;
-  GoomControl(uint32_t resx, uint32_t resy, std::string resourcesDirectory);
+  GoomControl(uint32_t width, uint32_t height, const std::string& resourcesDirectory);
   GoomControl(const GoomControl&) noexcept = delete;
   GoomControl(GoomControl&&) noexcept = delete;
   ~GoomControl() noexcept;

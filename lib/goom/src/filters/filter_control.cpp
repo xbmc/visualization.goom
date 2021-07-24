@@ -62,7 +62,7 @@ public:
   auto operator=(const FilterEvents&) -> FilterEvents& = delete;
   auto operator=(FilterEvents&&) -> FilterEvents& = delete;
 
-  enum FilterEventTypes
+  enum class FilterEventTypes
   {
     ROTATE = 0,
     CRYSTAL_BALL_IN_MIDDLE,
@@ -180,7 +180,7 @@ const std::vector<std::string> FilterControl::IMAGE_FILENAMES{
     "pattern5.jpg", "chameleon-tail.jpg", "mountain_sunset.png",
 };
 
-inline auto FilterControl::GetImageFilename(const std::string& imageFilename) -> std::string
+inline auto FilterControl::GetImageFilename(const std::string& imageFilename) const -> std::string
 {
   return m_resourcesDirectory + PATH_SEP + IMAGES_DIR + PATH_SEP + IMAGE_DISPLACEMENT_DIR +
          PATH_SEP + imageFilename;
@@ -407,7 +407,7 @@ void FilterControl::SetImageDisplacementModeSettings()
   using EventTypes = FilterControl::FilterEvents::FilterEventTypes;
 
   m_filterData.imageDisplacement =
-      m_imageDisplacements[GetRandInRange(0U, m_imageDisplacements.size())];
+      m_imageDisplacements[GetRandInRange(0U, static_cast<uint32_t>(m_imageDisplacements.size()))];
 
   m_filterData.imageDisplacementAmplitude = GetRandInRange(
       ZoomFilterData::MIN_IMAGE_DISPL_AMPLITUDE, ZoomFilterData::MAX_IMAGE_DISPL_AMPLITUDE);
@@ -734,7 +734,7 @@ void FilterControl::SetPlaneEffects()
 
   m_filterData.hPlaneEffectAmplitude = GetRandInRange(ZoomFilterData::MIN_H_PLANE_EFFECT_AMPLITUDE,
                                                       ZoomFilterData::MAX_H_PLANE_EFFECT_AMPLITUDE);
-  if (m_filterEvents->Happens(FilterEvents::PLANE_AMP_EQUAL))
+  if (m_filterEvents->Happens(FilterEvents::FilterEventTypes::PLANE_AMP_EQUAL))
   {
     m_filterData.vPlaneEffectAmplitude = m_filterData.hPlaneEffectAmplitude;
   }

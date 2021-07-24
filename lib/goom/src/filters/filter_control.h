@@ -7,7 +7,6 @@
 #include <string>
 #include <vector>
 
-#if __cplusplus <= 201402L
 namespace GOOM
 {
 
@@ -17,15 +16,6 @@ namespace FILTERS
 {
 
 class ImageDisplacement;
-#else
-namespace GOOM
-{
-class PluginInfo;
-}
-namespace GOOM::FILTERS
-{
-class ImageDisplacement;
-#endif
 
 class FilterControl
 {
@@ -45,8 +35,8 @@ public:
   auto HaveSettingsChangedSinceMark() const -> bool;
   void ClearUnchangedMark();
 
-  auto GetVitesseSetting() const -> const Vitesse&;
-  auto GetVitesseSetting() -> Vitesse&;
+  [[nodiscard]] auto GetVitesseSetting() const -> const Vitesse&;
+  [[nodiscard]] auto GetVitesseSetting() -> Vitesse&;
 
   void SetNoisifySetting(bool value);
   void SetNoiseFactorSetting(float value);
@@ -57,7 +47,7 @@ public:
 
   void ChangeMilieu();
 
-  auto GetFilterSettings() const -> const ZoomFilterData&;
+  [[nodiscard]] auto GetFilterSettings() const -> const ZoomFilterData&;
   void SetRandomFilterSettings();
   void SetRandomFilterSettings(ZoomFilterMode mode);
   void SetDefaultFilterSettings(ZoomFilterMode mode);
@@ -71,10 +61,10 @@ private:
   bool m_hasChanged = false;
   std::string m_resourcesDirectory{};
   static const std::vector<std::string> IMAGE_FILENAMES;
-  auto GetImageFilename(const std::string& imageFilename) -> std::string;
+  [[nodiscard]] auto GetImageFilename(const std::string& imageFilename) const -> std::string;
   std::vector<std::shared_ptr<ImageDisplacement>> m_imageDisplacements{};
 
-  auto GetNewRandomMode() const -> ZoomFilterMode;
+  [[nodiscard]] auto GetNewRandomMode() const -> ZoomFilterMode;
 
   void SetDefaultSettings();
 
@@ -105,7 +95,7 @@ private:
   void SetHypercosEffect(const MinMaxValues& minMaxFreq, const MinMaxValues& minMaxAmp);
   void SetWaveModeSettings(const MinMaxValues& minMaxFreq, const MinMaxValues& minMaxAmp);
   void SetWaveEffect(const MinMaxValues& minMaxFreq, const MinMaxValues& minMaxAmp);
-  static auto GetRandomHypercosEffect() -> ZoomFilterData::HypercosEffect;
+  [[nodiscard]] static auto GetRandomHypercosEffect() -> ZoomFilterData::HypercosEffect;
 };
 
 inline auto FilterControl::GetResourcesDirectory() const -> const std::string&
@@ -180,11 +170,7 @@ inline void FilterControl::ToggleRotateSetting()
   m_filterData.rotateSpeed = -m_filterData.rotateSpeed;
 }
 
-#if __cplusplus <= 201402L
 } // namespace FILTERS
 } // namespace GOOM
-#else
-} // namespace GOOM::FILTERS
-#endif
 
 #endif //VISUALIZATION_GOOM_FILTER_CONTROL_H

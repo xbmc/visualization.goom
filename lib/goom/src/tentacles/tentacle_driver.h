@@ -39,8 +39,6 @@ public:
       m_count--;
     }
   }
-  [[nodiscard]] auto AtStart() const -> bool { return m_count == m_startCount; }
-  [[nodiscard]] auto GetCurrentCount() const -> size_t { return m_count; }
 
 private:
   const size_t m_startCount;
@@ -72,7 +70,7 @@ public:
   };
 
   TentacleDriver() noexcept = delete;
-  TentacleDriver(const IGoomDraw* draw) noexcept;
+  explicit TentacleDriver(const IGoomDraw* draw) noexcept;
   TentacleDriver(const TentacleDriver&) noexcept = delete;
   TentacleDriver(TentacleDriver&&) noexcept = delete;
   ~TentacleDriver() noexcept = default;
@@ -88,7 +86,6 @@ public:
   void SetWeightedColorMaps(const UTILS::RandomColorMaps& weightedMaps);
 
   void StartIterating();
-  [[maybe_unused]] void StopIterating();
 
   void FreshStart();
   void Update(
@@ -123,11 +120,9 @@ private:
 
   size_t m_updateNum = 0;
   Tentacles3D m_tentacles{};
-  static constexpr float ITER_ZERO_Y_VAL = 10.0;
   size_t m_numTentacles = 0;
   std::vector<IterationParams> m_tentacleParams{};
   static const size_t CHANGE_CURRENT_COLOR_MAP_GROUP_EVERY_N_UPDATES;
-  static const size_t CHANGE_TENTACLE_COLOR_MAP_EVERY_N_UPDATES;
   [[nodiscard]] auto GetNextColorMapGroups() const -> std::vector<UTILS::ColorMapGroup>;
 
   static auto CreateNewTentacle2D(size_t id, const IterationParams& p)
@@ -140,7 +135,7 @@ private:
               const Pixel& dominantLowColor,
               float angle,
               float distance,
-              float distance2);
+              float distance2) const;
   [[nodiscard]] auto ProjectV3DOntoV2D(const std::vector<V3dFlt>& v3, float distance) const
       -> std::vector<V2dInt>;
   static void RotateV3DAboutYAxis(float sinAngle, float cosAngle, const V3dFlt& src, V3dFlt& dest);
@@ -175,18 +170,6 @@ private:
   mutable float m_tTransition = 0.0F;
 };
 
-class GridTentacleLayout : public ITentacleLayout
-{
-public:
-  [[maybe_unused]] GridTentacleLayout(
-      float xmin, float xmax, size_t xNum, float ymin, float ymax, size_t yNum, float zConst);
-  [[nodiscard]] auto GetNumPoints() const -> size_t override;
-  [[nodiscard]] auto GetPoints() const -> const std::vector<V3dFlt>& override;
-
-private:
-  std::vector<V3dFlt> m_points{};
-};
-
 class CirclesTentacleLayout : public ITentacleLayout
 {
 public:
@@ -197,7 +180,6 @@ public:
   // Order of points is outer circle to inner.
   [[nodiscard]] auto GetNumPoints() const -> size_t override;
   [[nodiscard]] auto GetPoints() const -> const std::vector<V3dFlt>& override;
-  static auto GetCircleSamples(size_t numCircles, size_t totalPoints) -> std::vector<size_t>;
 
 private:
   std::vector<V3dFlt> m_points{};

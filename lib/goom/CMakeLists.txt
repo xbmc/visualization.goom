@@ -22,6 +22,7 @@ add_library(goom
         src/control/goom_events.cpp
         src/control/goom_image_buffers.cpp
         src/control/goom_states.cpp
+        src/control/goom_title_display.cpp
         src/convolve_fx.cpp
         src/draw/goom_draw_buffer.cpp
         src/draw/text_draw.cpp

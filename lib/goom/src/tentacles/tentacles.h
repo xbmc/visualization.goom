@@ -3,6 +3,7 @@
 
 #include "goom_graphic.h"
 #include "goomutils/colormaps.h"
+#include "goomutils/colorutils.h"
 #include "goomutils/mathutils.h"
 
 #include <functional>
@@ -70,7 +71,6 @@ public:
   [[nodiscard]] auto GetIterNum() const -> size_t;
   void Iterate();
 
-  [[nodiscard]] auto GetXAndYVectors() const -> const XAndYVectors&;
   [[nodiscard]] auto GetDampedXAndYVectors() const -> const XAndYVectors&;
 
   [[nodiscard]] auto GetLength() const -> double;
@@ -78,9 +78,6 @@ public:
   [[nodiscard]] auto GetXMin() const -> double;
   [[nodiscard]] auto GetXMax() const -> double;
   void SetXDimensions(double x0, double y0);
-
-  [[nodiscard]] auto GetYMin() const -> double;
-  [[nodiscard]] auto GetYMax() const -> double;
 
   [[nodiscard]] auto GetNumNodes() const -> size_t;
 
@@ -120,7 +117,7 @@ private:
 
   auto GetFirstY() -> float;
   auto GetNextY(size_t nodeNum) -> float;
-  auto GetDamping(double x) -> double;
+  auto GetDamping(double x) const -> double;
   [[nodiscard]] auto GetDampedVal(size_t nodeNum, double val) const -> double;
   void UpdateDampedVals(const std::vector<double>& yVals);
   [[nodiscard]] auto Damp(size_t nodeNum) const -> double;
@@ -169,8 +166,7 @@ public:
   auto Get2DTentacle() -> Tentacle2D& { return *m_tentacle; }
   [[nodiscard]] auto Get2DTentacle() const -> const Tentacle2D& { return *m_tentacle; }
 
-  [[nodiscard]] auto GetId() const -> size_t { return m_tentacle->GetID(); }
-
+  void ColorMapsChanged();
   [[nodiscard]] auto GetColor(size_t nodeNum) const -> Pixel;
   [[nodiscard]] auto GetMixedColors(size_t nodeNum, const Pixel& color, const Pixel& lowColor) const
       -> std::tuple<Pixel, Pixel>;
@@ -202,6 +198,12 @@ private:
   size_t m_numHeadNodes{};
   bool m_reverseColorMix = false;
   bool m_allowOverexposed = true;
+  static constexpr float GAMMA = 1.0F / 1.5F;
+  static constexpr float GAMMA_BRIGHTNESS_THRESHOLD = 0.01F;
+  const UTILS::GammaCorrection m_gammaCorrect{GAMMA, GAMMA_BRIGHTNESS_THRESHOLD};
+  auto GetGammaCorrection(float brightness, const Pixel& color) const -> Pixel;
+  bool m_useIncreasedChroma = true;
+  auto GetFinalMixedColor(const Pixel& color, const Pixel& segmentColor, float t) const -> Pixel;
 };
 
 class Tentacles3D
@@ -229,12 +231,16 @@ public:
 
   void AddTentacle(Tentacle3D&& t);
 
-  Iter begin() { return Iter(this, 0); }
-  Iter end() { return Iter(this, m_tentacles.size()); }
+  Iter begin() { return {this, 0}; }
+  Iter end() { return {this, m_tentacles.size()}; }
 
-  auto operator[](const size_t i) const -> const Tentacle3D& { return m_tentacles.at(i); }
-  auto operator[](const size_t i) -> Tentacle3D& { return m_tentacles.at(i); }
+  [[nodiscard]] auto operator[](const size_t i) const -> const Tentacle3D&
+  {
+    return m_tentacles.at(i);
+  }
+  [[nodiscard]] auto operator[](const size_t i) -> Tentacle3D& { return m_tentacles.at(i); }
 
+  void ColorMapsChanged();
   void SetAllowOverexposed(bool val);
 
 private:
@@ -299,15 +305,6 @@ inline auto Tentacle2D::GetXMax() const -> double
   return m_xMax;
 }
 
-inline auto Tentacle2D::GetYMin() const -> double
-{
-  return m_yMin;
-}
-inline auto Tentacle2D::GetYMax() const -> double
-{
-  return m_yMax;
-}
-
 inline auto Tentacle2D::GetDoDamping() const -> bool
 {
   return m_doDamping;
@@ -318,7 +315,7 @@ inline void Tentacle2D::SetDoDamping(const bool val)
   m_doDamping = val;
 }
 
-inline auto Tentacle2D::GetDamping(const double x) -> double
+inline auto Tentacle2D::GetDamping(const double x) const -> double
 {
   return (*m_dampingFunc)(x);
 }

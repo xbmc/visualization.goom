@@ -36,7 +36,7 @@ public:
   void ChangePrettyLerpMixHigher();
   void SetNumTentacleDrivers(
       const std::vector<std::unique_ptr<GOOM::TENTACLES::TentacleDriver>>& d);
-  void ChangeTentacleDriver(uint32_t driverIndex);
+  void ChangeTentacleDriver(size_t driverIndex);
 
   void SetLastNumTentacles(size_t val);
   void SetLastUpdatingWithDraw(bool val);

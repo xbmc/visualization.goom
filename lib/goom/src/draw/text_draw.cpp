@@ -4,7 +4,7 @@
 #include "goom_graphic.h"
 #include "goomutils/colorutils.h"
 #include "goomutils/logging_control.h"
-#undef NO_LOGGING
+//#undef NO_LOGGING
 #include "goomutils/logging.h"
 
 #include <codecvt>
@@ -177,8 +177,8 @@ private:
   int32_t m_fontSize = DEFAULT_FONT_SIZE;
   uint32_t m_horizontalResolution = 90;
   uint32_t m_verticalResolution = 90;
-  float m_outlineWidth = 3.0;
-  float m_charSpacing = 0.0;
+  float m_outlineWidth = 3.0F;
+  float m_charSpacing = 0.0F;
   std::string m_fontFilename{};
   std::vector<unsigned char> m_fontBuffer{};
   std::string m_theText{};
@@ -242,7 +242,8 @@ private:
 };
 #endif
 
-TextDraw::TextDraw(const IGoomDraw* const draw) noexcept : m_textDrawImpl{new TextDrawImpl{draw}}
+TextDraw::TextDraw(const IGoomDraw* const draw) noexcept
+  : m_textDrawImpl{std::make_unique<TextDrawImpl>(draw)}
 {
 }
 
@@ -347,6 +348,7 @@ inline auto TextDraw::TextDrawImpl::GetFontFile() const -> const std::string&
 void TextDraw::TextDrawImpl::SetFontFile(const std::string& filename)
 {
   m_fontFilename = filename;
+  LogInfo("Setting font file '{}'.", m_fontFilename);
 
   std::ifstream fontFile(m_fontFilename, std::ios::binary);
   if (!fontFile)
@@ -385,6 +387,7 @@ void TextDraw::TextDrawImpl::SetFontSize(const int32_t val)
   }
 
   m_fontSize = val;
+  LogInfo("Setting font size {}.", m_fontSize);
   if (m_face)
   {
     SetFaceFontSize();
@@ -417,6 +420,7 @@ void TextDraw::TextDrawImpl::SetText(const std::string& str)
   }
 
   m_theText = str;
+  LogInfo("Setting font text '{}'.", m_theText);
 }
 
 void TextDraw::TextDrawImpl::SetFontColorFunc(const FontColorFunc& f)
@@ -474,6 +478,8 @@ void TextDraw::TextDrawImpl::Prepare()
   m_textBoundingRect.xmax = xMax;
   m_textBoundingRect.ymin = yMin;
   m_textBoundingRect.ymax = yMax;
+  LogInfo("Font bounding rectangle: {}, {}, {}, {}.", m_textBoundingRect.xmin,
+          m_textBoundingRect.xmax, m_textBoundingRect.ymin, m_textBoundingRect.ymax);
 }
 
 auto TextDraw::TextDrawImpl::GetStartXPen(const int32_t xPen) const -> int

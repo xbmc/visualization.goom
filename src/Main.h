@@ -19,7 +19,6 @@
 #include <condition_variable>
 #include <functional>
 #include <glm/gtc/type_ptr.hpp>
-#include <kodi/General.h>
 #include <kodi/addon-instance/Visualization.h>
 #include <kodi/gui/gl/Shader.h>
 #include <mutex>

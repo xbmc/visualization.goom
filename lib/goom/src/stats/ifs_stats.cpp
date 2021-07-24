@@ -13,6 +13,8 @@ namespace GOOM
 void IfsStats::Reset()
 {
   m_numUpdates = 0;
+  m_numInits = 0;
+  m_numRenews = 0;
   m_totalTimeInUpdatesMs = 0;
   m_minTimeInUpdatesMs = std::numeric_limits<uint32_t>::max();
   m_maxTimeInUpdatesMs = 0;
@@ -30,10 +32,13 @@ void IfsStats::Log(const GoomStats::LogStatsValueFunc& l) const
 {
   const constexpr char* MODULE = "Ifs";
 
+  l(MODULE, "numInits", m_numInits);
+  l(MODULE, "numRenews", m_numRenews);
   const auto avTimeInUpdateMs = static_cast<int32_t>(std::lround(
       m_numUpdates == 0
           ? -1.0
           : static_cast<float>(m_totalTimeInUpdatesMs) / static_cast<float>(m_numUpdates)));
+  l(MODULE, "numUpdates", m_numUpdates);
   l(MODULE, "avTimeInUpdateMs", avTimeInUpdateMs);
   l(MODULE, "minTimeInUpdatesMs", m_minTimeInUpdatesMs);
   l(MODULE, "maxTimeInUpdatesMs", m_maxTimeInUpdatesMs);
@@ -46,7 +51,17 @@ void IfsStats::Log(const GoomStats::LogStatsValueFunc& l) const
   l(MODULE, "numHighLowDensityBlurThreshold", m_numHighLowDensityBlurThreshold);
 }
 
-void IfsStats::UpdateStart()
+void IfsStats::UpdateInit()
+{
+  m_numInits++;
+}
+
+void IfsStats::UpdateRenew()
+{
+  m_numRenews++;
+}
+
+void IfsStats::UpdateBegin()
 {
   m_timeNowHiRes = std::chrono::high_resolution_clock::now();
   m_numUpdates++;

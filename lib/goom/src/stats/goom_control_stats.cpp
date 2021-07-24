@@ -1,6 +1,5 @@
 #include "goom_control_stats.h"
 
-#include "goom/filters.h"
 #include "goom/goom_stats.h"
 #include "goom/goom_version.h"
 #include "goomutils/enumutils.h"
@@ -91,15 +90,14 @@ void GoomControlStats::Log(const GoomStats::LogStatsValueFunc& logVal) const
   const constexpr char* MODULE = "goom_core";
 
   logVal(MODULE, "songTitle", m_songTitle);
-  logVal(MODULE, "numThreadsUsed", m_numThreadsUsed);
-  logVal(MODULE, "fontFileUsed", m_fontFileUsed);
+  logVal(MODULE, "numThreadsUsed", static_cast<uint64_t>(m_numThreadsUsed));
   logVal(MODULE, "goomLib version", GetFullVersionStr());
   logVal(MODULE, "Compiler std", static_cast<uint32_t>(__cplusplus));
 
-  logVal(MODULE, "startingState", m_startingState);
+  logVal(MODULE, "startingState", static_cast<uint64_t>(m_startingState));
   logVal(MODULE, "startingFilterMode", EnumToString(m_startingFilterMode));
   logVal(MODULE, "startingSeed", m_startingSeed);
-  logVal(MODULE, "lastState", m_lastState);
+  logVal(MODULE, "lastState", static_cast<uint64_t>(m_lastState));
   logVal(MODULE, "lastSeed", m_lastSeed);
   logVal(MODULE, "lastNumClipped", m_lastNumClipped);
   logVal(MODULE, "lastFilterDuration", m_lastFilterDuration);
@@ -111,10 +109,10 @@ void GoomControlStats::Log(const GoomStats::LogStatsValueFunc& logVal) const
           : static_cast<float>(m_totalTimeInUpdatesMs) / static_cast<float>(m_numUpdates)));
   logVal(MODULE, "avTimeInUpdateMs", avTimeInUpdateMs);
   logVal(MODULE, "minTimeInUpdatesMs", m_minTimeInUpdatesMs);
-  logVal(MODULE, "stateAtMin", m_stateAtMin);
+  logVal(MODULE, "stateAtMin", static_cast<uint64_t>(m_stateAtMin));
   logVal(MODULE, "filterModeAtMin", EnumToString(m_filterModeAtMin));
   logVal(MODULE, "maxTimeInUpdatesMs", m_maxTimeInUpdatesMs);
-  logVal(MODULE, "stateAtMax", m_stateAtMax);
+  logVal(MODULE, "stateAtMax", static_cast<uint64_t>(m_stateAtMax));
   logVal(MODULE, "filterModeAtMax", EnumToString(m_filterModeAtMax));
   logVal(MODULE, "totalStateChanges", m_totalStateChanges);
   const float avStateDuration =
@@ -144,7 +142,7 @@ void GoomControlStats::Log(const GoomStats::LogStatsValueFunc& logVal) const
   for (size_t i = 0; i < m_numFilterModeChanges.size(); i++)
   {
     logVal(MODULE, "numFilterMode_" + EnumToString(static_cast<ZoomFilterMode>(i)) + "_Changes",
-           m_numFilterModeChanges[i]);
+           m_numFilterModeChanges.at(i));
   }
 
   logVal(MODULE, "numLockChanges", m_numLockChanges);
@@ -190,7 +188,7 @@ void GoomControlStats::SetSongTitle(const std::string& s)
   m_songTitle = s;
 }
 
-void GoomControlStats::SetStateStartValue(const uint32_t stateIndex)
+void GoomControlStats::SetStateStartValue(const size_t stateIndex)
 {
   m_startingState = stateIndex;
 }
@@ -200,7 +198,7 @@ void GoomControlStats::SetZoomFilterStartValue(const ZoomFilterMode filterMode)
   m_startingFilterMode = filterMode;
 }
 
-void GoomControlStats::SetStateLastValue(const uint32_t stateIndex)
+void GoomControlStats::SetStateLastValue(const size_t stateIndex)
 {
   m_lastState = stateIndex;
 }
@@ -218,11 +216,6 @@ void GoomControlStats::SetSeedLastValue(const uint64_t seed)
 void GoomControlStats::SetNumThreadsUsedValue(const size_t n)
 {
   m_numThreadsUsed = n;
-}
-
-void GoomControlStats::SetFontFileUsed(const std::string& f)
-{
-  m_fontFileUsed = f;
 }
 
 void GoomControlStats::UpdateChange(const size_t currentState,

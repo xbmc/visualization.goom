@@ -28,6 +28,8 @@ public:
   explicit TValue(StepType stepType, float stepSize) noexcept;
   explicit TValue(StepType stepType, uint32_t numSteps) noexcept;
 
+  static constexpr float MAX_T_VALUE = 1.0F + SMALL_FLOAT;
+
   auto GetStepType() const -> StepType;
   auto GetStepSize() const -> float;
   void SetStepSize(float val);
@@ -81,7 +83,7 @@ inline auto TValue::IsStopped() const -> bool
   {
     return false;
   }
-  return m_t > 1.0 + SMALL_FLOAT;
+  return m_t >= MAX_T_VALUE;
 }
 
 inline void TValue::Reset(const float t)

@@ -136,7 +136,7 @@ private:
 };
 
 ZoomFilterFx::ZoomFilterFx(Parallel& p, const std::shared_ptr<const PluginInfo>& info) noexcept
-  : m_fxImpl{new ZoomFilterImpl{p, info}}
+  : m_fxImpl{std::make_unique<ZoomFilterImpl>(p, info)}
 {
 }
 
@@ -334,9 +334,10 @@ inline auto ZoomFilterFx::ZoomFilterImpl::GetMixedColor(const NeighborhoodCoeffA
   for (size_t i = 0; i < ZoomFilterBuffers::NUM_NEIGHBOR_COEFFS; i++)
   {
     const auto coeff = static_cast<uint32_t>(coeffs.c[i]);
-    newR += static_cast<uint32_t>(colors[i].R()) * coeff;
-    newG += static_cast<uint32_t>(colors[i].G()) * coeff;
-    newB += static_cast<uint32_t>(colors[i].B()) * coeff;
+    const auto& color = colors[i];
+    newR += static_cast<uint32_t>(color.R()) * coeff;
+    newG += static_cast<uint32_t>(color.G()) * coeff;
+    newB += static_cast<uint32_t>(color.B()) * coeff;
   }
   newR >>= 8;
   newG >>= 8;

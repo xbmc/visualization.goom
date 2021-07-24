@@ -521,8 +521,9 @@ auto CVisualizationGoom::InitGlObjects() -> bool
   glVertexAttribPointer(
       static_cast<GLuint>(m_aCoordLoc), m_componentsPerTexel, GL_FLOAT, GL_FALSE, 0,
       (GLvoid*)(static_cast<size_t>(m_numVertices * m_componentsPerVertex) * sizeof(GLfloat)));
-  glBufferData(GL_ARRAY_BUFFER, static_cast<size_t>(m_numElements) * sizeof(GLfloat), m_quadData,
-               GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER,
+               static_cast<GLsizeiptr>(static_cast<size_t>(m_numElements) * sizeof(GLfloat)),
+               m_quadData, GL_STATIC_DRAW);
   glBindVertexArray(0);
 #endif
 

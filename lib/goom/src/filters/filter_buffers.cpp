@@ -42,12 +42,12 @@ public:
   auto operator=(const FilterCoefficients&) -> FilterCoefficients& = delete;
   auto operator=(FilterCoefficients&&) -> FilterCoefficients& = delete;
 
-  auto GetCoeffs() const -> const FilterCoeff2dArray&;
+  [[nodiscard]] auto GetCoeffs() const -> const FilterCoeff2dArray&;
 
 private:
-  // modif d'optim by Jeko : precalcul des 4 coefs resultant des 2 pos
-  const FilterCoeff2dArray m_precalculatedCoeffs;
-  static auto GetPrecalculatedCoefficients() -> FilterCoeff2dArray;
+  // modif d'optim by Jeko : precalcul des 4 coeffs resultant des 2 pos
+  const FilterCoeff2dArray m_precalculatedCoeffs{GetPrecalculatedCoefficients()};
+  [[nodiscard]] static auto GetPrecalculatedCoefficients() -> FilterCoeff2dArray;
 };
 
 // TODO Old Clang and MSVC won't allow the following '= default'
@@ -144,30 +144,31 @@ constexpr int32_t MAX_TRAN_DIFF_FACTOR = 0xFFFF;
 
 constexpr float MIN_SCREEN_COORD_VAL = 1.0F / static_cast<float>(DIM_FILTER_COEFFS);
 
-inline auto TranToCoeffIndexCoord(const uint32_t tranCoord)
+[[nodiscard]] inline auto TranToCoeffIndexCoord(const uint32_t tranCoord)
 {
   return tranCoord & DIM_FILTER_COEFFS_MOD_MASK;
 }
 
-inline auto TranToScreenPoint(const V2dInt& tranPoint) -> V2dInt
+[[nodiscard]] inline auto TranToScreenPoint(const V2dInt& tranPoint) -> V2dInt
 {
   return {tranPoint.x >> DIM_FILTER_COEFFS_DIV_SHIFT, tranPoint.y >> DIM_FILTER_COEFFS_DIV_SHIFT};
 }
 
-inline auto ScreenToTranPoint(const V2dInt& screenPoint) -> V2dInt
+[[nodiscard]] inline auto ScreenToTranPoint(const V2dInt& screenPoint) -> V2dInt
 {
   return {screenPoint.x << DIM_FILTER_COEFFS_DIV_SHIFT,
           screenPoint.y << DIM_FILTER_COEFFS_DIV_SHIFT};
 }
 
-inline auto ScreenToTranCoord(const float screenCoord) -> uint32_t
+[[nodiscard]] inline auto ScreenToTranCoord(const float screenCoord) -> uint32_t
 {
   // IMPORTANT: Without 'lround' a faint cross artifact appears in the centre of the screen.
   return static_cast<uint32_t>(std::lround(screenCoord * static_cast<float>(DIM_FILTER_COEFFS)));
 }
 
-inline auto GetTranBuffLerp(const int32_t srceBuffVal, const int32_t destBuffVal, const int32_t t)
-    -> int32_t
+[[nodiscard]] inline auto GetTranBuffLerp(const int32_t srceBuffVal,
+                                          const int32_t destBuffVal,
+                                          const int32_t t) -> int32_t
 {
   return srceBuffVal + ((t * (destBuffVal - srceBuffVal)) >> DIM_FILTER_COEFFS);
 }
@@ -178,7 +179,6 @@ ZoomFilterBuffers::ZoomFilterBuffers(Parallel& p, const std::shared_ptr<const Pl
     m_bufferSize{goomInfo->GetScreenInfo().size},
     m_precalculatedCoeffs{std::make_unique<FilterCoefficients>()},
     m_parallel{&p},
-    m_tranLerpFactor{0},
     m_tranXSrce(m_bufferSize),
     m_tranYSrce(m_bufferSize),
     m_tranXDest(m_bufferSize),
@@ -188,8 +188,6 @@ ZoomFilterBuffers::ZoomFilterBuffers(Parallel& p, const std::shared_ptr<const Pl
     m_maxTranPoint{ScreenToTranPoint(
         {static_cast<int32_t>(m_screenWidth - 1), static_cast<int32_t>(m_screenHeight - 1)})},
     m_tranBuffStripeHeight{m_screenHeight / DIM_FILTER_COEFFS},
-    m_tranBuffYLineStart{0},
-    m_tranBufferState{TranBufferState::TRAN_BUFFER_READY},
     m_firedec(m_screenHeight)
 {
   assert(DIM_FILTER_COEFFS ==
@@ -268,23 +266,17 @@ void ZoomFilterBuffers::UpdateTranBuffer()
 {
   if (m_tranBufferState == TranBufferState::RESET_TRAN_BUFFER)
   {
-    //LogState("Before RESET_TRAN_BUFFER");
     ResetTranBuffer();
-    //LogState("After RESET_TRAN_BUFFER");
   }
   else if (m_tranBufferState == TranBufferState::RESTART_TRAN_BUFFER)
   {
-    //LogState("Before RESTART_TRAN_BUFFER");
     RestartTranBuffer();
-    //LogState("After RESTART_TRAN_BUFFER");
   }
   else
   {
     // Create a new destination stripe of 'm_tranBuffStripeHeight' height starting
     // at 'm_tranBuffYLineStart'.
-    //LogState("Before DoNextTranBufferStripe");
     DoNextTranBufferStripe(m_tranBuffStripeHeight);
-    //LogState("After DoNextTranBufferStripe");
   }
 }
 
@@ -398,7 +390,7 @@ void ZoomFilterBuffers::DoNextTranBufferStripe(const uint32_t tranBuffStripeHeig
   const uint32_t tranBuffYLineEnd =
       std::min(m_screenHeight, m_tranBuffYLineStart + tranBuffStripeHeight);
 
-  m_parallel->ForLoop(tranBuffYLineEnd - static_cast<uint32_t>(m_tranBuffYLineStart), doStripeLine);
+  m_parallel->ForLoop(tranBuffYLineEnd - m_tranBuffYLineStart, doStripeLine);
 
   m_tranBuffYLineStart += tranBuffStripeHeight;
   if (tranBuffYLineEnd >= m_screenHeight)
@@ -408,7 +400,7 @@ void ZoomFilterBuffers::DoNextTranBufferStripe(const uint32_t tranBuffStripeHeig
   }
 }
 
-inline auto ZoomFilterBuffers::GetTranPoint(const NormalizedCoords& normalized) const -> V2dInt
+inline auto ZoomFilterBuffers::GetTranPoint(const NormalizedCoords& normalized) -> V2dInt
 {
   return NormalizedToTranPoint(normalized);
 

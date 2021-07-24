@@ -3,7 +3,6 @@
 
 #include "v2d.h"
 
-#if __cplusplus <= 201402L
 namespace GOOM
 {
 
@@ -14,15 +13,6 @@ namespace FILTERS
 {
 
 class NormalizedCoords;
-#else
-namespace GOOM
-{
-class FilterStats;
-struct ZoomFilterData;
-}; // namespace GOOM
-namespace GOOM::FILTERS
-{
-#endif
 
 class IZoomVector
 {
@@ -46,11 +36,7 @@ public:
   virtual auto GetZoomPoint(const NormalizedCoords& coords) const -> NormalizedCoords = 0;
 };
 
-#if __cplusplus <= 201402L
 } // namespace FILTERS
 } // namespace GOOM
-#else
-} // namespace GOOM::FILTERS
-#endif
 
 #endif //VISUALIZATION_GOOM_GOOM_ZOOM_VECTOR_H

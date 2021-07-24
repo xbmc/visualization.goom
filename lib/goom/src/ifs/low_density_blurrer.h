@@ -20,7 +20,8 @@ namespace GOOM::IFS
 {
 #endif
 
-struct IfsPoint;
+class IfsPoint;
+class Colorizer;
 
 enum class BlurrerColorMode
 {
@@ -36,7 +37,7 @@ class LowDensityBlurrer
 {
 public:
   LowDensityBlurrer() noexcept = delete;
-  LowDensityBlurrer(const IGoomDraw* draw, uint32_t width) noexcept;
+  LowDensityBlurrer(const IGoomDraw* draw, uint32_t width, const Colorizer* colorizer) noexcept;
 
   [[nodiscard]] auto GetWidth() const -> uint32_t;
   void SetWidth(uint32_t val);
@@ -52,13 +53,15 @@ public:
 private:
   const IGoomDraw* const m_draw;
   uint32_t m_width;
+  const Colorizer* const m_colorizer{};
   float m_neighbourMixFactor = 1.0;
   BlurrerColorMode m_colorMode{};
   Pixel m_singleColor{};
 
-  static constexpr float BLUR_GAMMA = 5.0F;
-  static constexpr float BLUR_GAMMA_THRESHOLD = 0.01F;
-  const UTILS::GammaCorrection m_blurGammaCorrect{BLUR_GAMMA, BLUR_GAMMA_THRESHOLD};
+  static constexpr float GAMMA = 2.0F;
+  static constexpr float GAMMA_BRIGHTNESS_THRESHOLD = 0.01F;
+  const UTILS::GammaCorrection m_gammaCorrect{GAMMA, GAMMA_BRIGHTNESS_THRESHOLD};
+  auto GetGammaCorrection(float brightness, const Pixel& color) const -> Pixel;
   void SetPointColor(IfsPoint& point,
                      float t,
                      float logMaxLowDensityCount,

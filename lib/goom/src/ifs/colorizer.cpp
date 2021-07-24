@@ -16,6 +16,7 @@ namespace GOOM::IFS
 {
 #endif
 
+using UTILS::GetBrighterColor;
 using UTILS::GetRandInRange;
 using UTILS::GetSlightlyDivergingStandardMaps;
 using UTILS::IColorMap;
@@ -58,12 +59,12 @@ auto Colorizer::GetNextColorMode() -> IfsDancersFx::ColorMode
   static const Weights<IfsDancersFx::ColorMode> s_colorModeWeights{{
     { IfsDancersFx::ColorMode::MAP_COLORS,            15 },
     { IfsDancersFx::ColorMode::MEGA_MAP_COLOR_CHANGE, 20 },
-    { IfsDancersFx::ColorMode::MIX_COLORS,            10 },
-    { IfsDancersFx::ColorMode::MEGA_MIX_COLOR_CHANGE, 15 },
-    { IfsDancersFx::ColorMode::REVERSE_MIX_COLORS,    10 },
-    { IfsDancersFx::ColorMode::SINGLE_COLORS,         20 },
-    { IfsDancersFx::ColorMode::SINE_MIX_COLORS,       15 },
-    { IfsDancersFx::ColorMode::SINE_MAP_COLORS,       15 },
+    { IfsDancersFx::ColorMode::MIX_COLORS,            15 },
+    { IfsDancersFx::ColorMode::MEGA_MIX_COLOR_CHANGE, 20 },
+    { IfsDancersFx::ColorMode::REVERSE_MIX_COLORS,    15 },
+    { IfsDancersFx::ColorMode::SINGLE_COLORS,         10 },
+    { IfsDancersFx::ColorMode::SINE_MIX_COLORS,       10 },
+    { IfsDancersFx::ColorMode::SINE_MAP_COLORS,       10 },
     }};
   // clang-format on
 
@@ -84,13 +85,13 @@ void Colorizer::ChangeColorMaps()
   m_countSinceColorMapChange = m_colorMapChangeCompleted;
 }
 
-auto Colorizer::GetNextMixerMapColor(const float t, const float x, const float y) const -> Pixel
+auto Colorizer::GetNextMixerMapColor(const float t, const float tX, const float tY) const -> Pixel
 {
   //  const float angle = y == 0.0F ? m_half_pi : std::atan2(y, x);
   //  const Pixel nextColor = mixerMap1->GetColor((m_pi + angle) / m_two_pi);
   const Pixel nextColor =
-      IColorMap::GetColorMix(m_colorMapsManager.GetColorMap(m_mixerMap1Id).GetColor(x),
-                             m_colorMapsManager.GetColorMap(m_mixerMap2Id).GetColor(y), t);
+      IColorMap::GetColorMix(m_colorMapsManager.GetColorMap(m_mixerMap1Id).GetColor(tX),
+                             m_colorMapsManager.GetColorMap(m_mixerMap2Id).GetColor(tY), t);
   //  const Pixel nextColor = m_colorMapsManager.GetColorMap(m_mixerMap1Id).GetColor(x);
   if (m_countSinceColorMapChange == 0)
   {
@@ -101,17 +102,16 @@ auto Colorizer::GetNextMixerMapColor(const float t, const float x, const float y
                             static_cast<float>(m_colorMapChangeCompleted);
   m_countSinceColorMapChange--;
   const Pixel prevNextColor =
-      IColorMap::GetColorMix(m_prevMixerMap1->GetColor(x), m_prevMixerMap2->GetColor(y), t);
+      IColorMap::GetColorMix(m_prevMixerMap1->GetColor(tX), m_prevMixerMap2->GetColor(tY), t);
   return IColorMap::GetColorMix(nextColor, prevNextColor, tTransition);
 }
 
 auto Colorizer::GetMixedColor(const Pixel& baseColor,
                               const uint32_t hitCount,
                               const float brightness,
-                              const bool lowGamma,
                               const float tMix,
-                              const float x,
-                              const float y) -> Pixel
+                              const float tX,
+                              const float tY) const -> Pixel
 {
   const float logAlpha =
       m_maxHitCount <= 1 ? 1.0F : std::log(static_cast<float>(hitCount)) / m_logMaxHitCount;
@@ -124,7 +124,7 @@ auto Colorizer::GetMixedColor(const Pixel& baseColor,
     case IfsDancersFx::ColorMode::MAP_COLORS:
     case IfsDancersFx::ColorMode::MEGA_MAP_COLOR_CHANGE:
     {
-      mixColor = GetNextMixerMapColor(brightness * logAlpha, x, y);
+      mixColor = GetNextMixerMapColor(brightness * logAlpha, tX, tY);
       if (m_colorMode == IfsDancersFx::ColorMode::MAP_COLORS)
       {
         tBaseMix = 1.0F - m_tAwayFromBaseColor;
@@ -142,7 +142,7 @@ auto Colorizer::GetMixedColor(const Pixel& baseColor,
     case IfsDancersFx::ColorMode::REVERSE_MIX_COLORS:
     case IfsDancersFx::ColorMode::MEGA_MIX_COLOR_CHANGE:
     {
-      mixColor = GetNextMixerMapColor(tMix, x, y);
+      mixColor = GetNextMixerMapColor(tMix, tX, tY);
       break;
     }
 
@@ -161,7 +161,7 @@ auto Colorizer::GetMixedColor(const Pixel& baseColor,
       static float s_freq = INITIAL_FREQ;
       static float s_z = 0.0F;
 
-      mixColor = GetNextMixerMapColor(T_MIX_FACTOR * (1.0F + std::sin(s_freq * s_z)), x, y);
+      mixColor = GetNextMixerMapColor(T_MIX_FACTOR * (1.0F + std::sin(s_freq * s_z)), tX, tY);
       s_z += Z_STEP;
       if (m_colorMode == IfsDancersFx::ColorMode::SINE_MAP_COLORS)
       {
@@ -183,8 +183,17 @@ auto Colorizer::GetMixedColor(const Pixel& baseColor,
     mixColor = IColorMap::GetColorMix(baseColor, mixColor, tBaseMix);
   }
 
-  return lowGamma ? m_lowGammaCorrect.GetCorrection(brightness * logAlpha, mixColor)
-                  : m_mainGammaCorrect.GetCorrection(brightness * logAlpha, mixColor);
+  return GetGammaCorrection(brightness * logAlpha, mixColor);
+}
+
+inline auto Colorizer::GetGammaCorrection(const float brightness, const Pixel& color) const -> Pixel
+{
+  // if constexpr (GAMMA == 1.0F)
+  if (GAMMA == 1.0F)
+  {
+    return GetBrighterColor(brightness, color, true);
+  }
+  return m_gammaCorrect.GetCorrection(brightness, color);
 }
 
 #if __cplusplus <= 201402L

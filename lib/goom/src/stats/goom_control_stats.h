@@ -29,9 +29,9 @@ public:
   void Log(const GoomStats::LogStatsValueFunc& val) const;
 
   void SetSongTitle(const std::string& songTitle);
-  void SetStateStartValue(uint32_t stateIndex);
+  void SetStateStartValue(size_t stateIndex);
   void SetZoomFilterStartValue(ZoomFilterMode filterMode);
-  void SetStateLastValue(uint32_t stateIndex);
+  void SetStateLastValue(size_t stateIndex);
   void SetSeedStartValue(uint64_t seed);
   void SetSeedLastValue(uint64_t seed);
   void SetLastNumClipped(uint32_t val);
@@ -75,27 +75,25 @@ public:
   void DoBlockyWavyOn();
   void DoZoomFilterAllowOverexposedOff();
   void DoZoomFilterAllowOverexposedOn();
-  void SetFontFileUsed(const std::string& f);
   void TooManyClipped();
 
 private:
   std::string m_songTitle{};
-  uint32_t m_startingState = 0;
-  uint32_t m_lastState = 0;
+  size_t m_startingState = 0;
+  size_t m_lastState = 0;
   ZoomFilterMode m_startingFilterMode = ZoomFilterMode::_NUM;
   uint64_t m_startingSeed = 0;
   uint64_t m_lastSeed = 0;
   uint32_t m_lastNumClipped = 0;
-  uint32_t m_numThreadsUsed = 0;
-  std::string m_fontFileUsed{};
+  size_t m_numThreadsUsed = 0;
 
   uint32_t m_numUpdates = 0;
   uint64_t m_totalTimeInUpdatesMs = 0;
   uint32_t m_minTimeInUpdatesMs = std::numeric_limits<uint32_t>::max();
   uint32_t m_maxTimeInUpdatesMs = 0;
   std::chrono::high_resolution_clock::time_point m_timeNowInUpdate{};
-  uint32_t m_stateAtMin = 0;
-  uint32_t m_stateAtMax = 0;
+  size_t m_stateAtMin = 0;
+  size_t m_stateAtMax = 0;
   ZoomFilterMode m_filterModeAtMin = ZoomFilterMode::_NULL;
   ZoomFilterMode m_filterModeAtMax = ZoomFilterMode::_NULL;
 

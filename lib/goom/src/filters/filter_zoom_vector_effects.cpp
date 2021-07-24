@@ -34,8 +34,7 @@ void ZoomVectorEffects::SetFilterStats(FilterStats& stats)
   m_stats = &stats;
 }
 
-auto ZoomVectorEffects::GetCleanedVelocity(const NormalizedCoords& velocity) const
-    -> NormalizedCoords
+auto ZoomVectorEffects::GetCleanedVelocity(const NormalizedCoords& velocity) -> NormalizedCoords
 {
   NormalizedCoords newVelocity = velocity;
   if (std::fabs(velocity.GetX()) < NormalizedCoords::GetMinNormalizedCoordVal())
@@ -134,7 +133,7 @@ auto ZoomVectorEffects::GetSpeedCoefficient(const float sqDistFromZero,
       speedCoeff *= GetYOnlySpeedCoeff(coords);
       break;
     }
-      /* Amulette 2 */
+      /* Amulet 2 */
       // vx = X * tan(dist);
       // vy = Y * tan(dist);
     default:

@@ -26,11 +26,18 @@ namespace GOOM::TENTACLES
 {
 #endif
 
+using UTILS::ExpDampingFunction;
+using UTILS::FlatDampingFunction;
+using UTILS::GetBrighterColor;
+using UTILS::GetIncreasedChroma;
+using UTILS::IColorMap;
+using UTILS::LinearDampingFunction;
+using UTILS::PiecewiseDampingFunction;
+using UTILS::ProbabilityOfMInN;
+
 #if __cplusplus <= 201402L
 const size_t Tentacle2D::MIN_NUM_NODES = 10;
 #endif
-
-using namespace GOOM::UTILS;
 
 Tentacle2D::Tentacle2D(const size_t id,
                        const size_t numNodes,
@@ -131,16 +138,12 @@ void Tentacle2D::StartIterating()
   m_iterNum = 0;
 
   const double xStep = (m_xMax - m_xMin) / static_cast<double>(m_numNodes - 1);
-  const double yStep =
-      100.0 /
-      static_cast<double>(m_numNodes - 1); // ?????????????????????????????????????????????????????
 
   m_xVec.resize(m_numNodes);
   m_yVec.resize(m_numNodes);
   m_dampedYVec.resize(m_numNodes);
   m_dampingCache.resize(m_numNodes);
   double x = m_xMin;
-  double y = m_yMin;
   for (size_t i = 0; i < m_numNodes; ++i)
   {
     m_dampingCache[i] = GetDamping(x);
@@ -148,7 +151,6 @@ void Tentacle2D::StartIterating()
     m_yVec[i] = 0.1 * m_dampingCache[i];
 
     x += xStep;
-    y += yStep;
   }
 }
 
@@ -176,8 +178,7 @@ void Tentacle2D::UpdateDampedVals(const std::vector<double>& yVals)
   for (size_t i = 1; i < NUM_SMOOTH_NODES; i++)
   {
     const double t = tSmooth(tNext);
-    m_dampedYVec[i] =
-        stdnew::lerp(m_dampedYVec[i - 1], static_cast<double>(GetDampedVal(i, yVals[i])), t);
+    m_dampedYVec[i] = stdnew::lerp(m_dampedYVec[i - 1], GetDampedVal(i, yVals[i]), t);
     tNext += tStep;
   }
 
@@ -185,27 +186,6 @@ void Tentacle2D::UpdateDampedVals(const std::vector<double>& yVals)
   {
     m_dampedYVec[i] = GetDampedVal(i, yVals[i]);
   }
-}
-
-auto Tentacle2D::GetXAndYVectors() const -> const Tentacle2D::XAndYVectors&
-{
-  if (std::get<0>(m_vecs).size() < 2)
-  {
-    throw std::runtime_error(std20::format("GetXAndYVectors: xvec.size() must be >= 2, not {}.",
-                                           std::get<0>(m_vecs).size()));
-  }
-  if (m_xVec.size() < 2)
-  {
-    throw std::runtime_error(
-        std20::format("GetXAndYVectors: xvec.size() must be >= 2, not {}.", m_xVec.size()));
-  }
-  if (m_yVec.size() < 2)
-  {
-    throw std::runtime_error(
-        std20::format("GetXAndYVectors: yvec.size() must be >= 2, not {}.", m_yVec.size()));
-  }
-
-  return m_vecs;
 }
 
 inline auto Tentacle2D::GetFirstY() -> float
@@ -269,7 +249,8 @@ auto Tentacle2D::CreateExpDampingFunc(const double xMin, const double xMax)
   constexpr double DAMP_START = 5.0;
   constexpr double DAMP_MAX = 30.0;
 
-  return DampingFuncPtr{new ExpDampingFunction{0.1, xRiseStart, DAMP_START, xMax, DAMP_MAX}};
+  return DampingFuncPtr{
+      std::make_unique<ExpDampingFunction>(0.1, xRiseStart, DAMP_START, xMax, DAMP_MAX)};
 }
 
 auto Tentacle2D::CreateLinearDampingFunc(const double xMin, const double xMax)
@@ -278,13 +259,13 @@ auto Tentacle2D::CreateLinearDampingFunc(const double xMin, const double xMax)
   constexpr float Y_SCALE = 30.0;
 
   std::vector<std::tuple<double, double, DampingFuncPtr>> pieces{};
-  (void)pieces.emplace_back(
-      std::make_tuple(xMin, 0.1 * xMax, DampingFuncPtr{new FlatDampingFunction{0.1}}));
-  (void)pieces.emplace_back(
-      std::make_tuple(0.1 * xMax, 10 * xMax,
-                      DampingFuncPtr{new LinearDampingFunction{0.1 * xMax, 0.1, xMax, Y_SCALE}}));
+  (void)pieces.emplace_back(std::make_tuple(
+      xMin, 0.1 * xMax, DampingFuncPtr{std::make_unique<FlatDampingFunction>(0.1)}));
+  (void)pieces.emplace_back(std::make_tuple(
+      0.1 * xMax, 10 * xMax,
+      DampingFuncPtr{std::make_unique<LinearDampingFunction>(0.1 * xMax, 0.1, xMax, Y_SCALE)}));
 
-  return DampingFuncPtr{new PiecewiseDampingFunction{pieces}};
+  return DampingFuncPtr{std::make_unique<PiecewiseDampingFunction>(pieces)};
 }
 
 Tentacle3D::Tentacle3D(std::unique_ptr<Tentacle2D> t,
@@ -351,10 +332,10 @@ auto Tentacle3D::GetMixedColors(const size_t nodeNum,
   }
 
   const Pixel segmentColor = GetColor(nodeNum);
-  const Pixel mixedColor = IColorMap::GetColorMix(color, segmentColor, t);
-  const Pixel mixedLowColor = IColorMap::GetColorMix(lowColor, segmentColor, t);
+  const Pixel mixedColor = GetFinalMixedColor(color, segmentColor, t);
+  const Pixel mixedLowColor = GetFinalMixedColor(lowColor, segmentColor, t);
 
-  if (std::abs(GetHead().x) < 10)
+  if (std::abs(GetHead().x) < 10.0F)
   {
     const float brightnessCut = t * t;
     return std::make_tuple(GetBrighterColor(brightnessCut, mixedColor, true),
@@ -362,6 +343,34 @@ auto Tentacle3D::GetMixedColors(const size_t nodeNum,
   }
 
   return std::make_tuple(mixedColor, mixedLowColor);
+}
+
+void Tentacle3D::ColorMapsChanged()
+{
+  m_useIncreasedChroma = ProbabilityOfMInN(7, 10);
+}
+
+inline auto Tentacle3D::GetFinalMixedColor(const Pixel& color,
+                                           const Pixel& segmentColor,
+                                           const float t) const -> Pixel
+{
+  const Pixel finalColor = GetGammaCorrection(1.0F, IColorMap::GetColorMix(color, segmentColor, t));
+  if (!m_useIncreasedChroma)
+  {
+    return finalColor;
+  }
+  return GetIncreasedChroma(finalColor);
+}
+
+inline auto Tentacle3D::GetGammaCorrection(const float brightness, const Pixel& color) const
+    -> Pixel
+{
+  // if constexpr (GAMMA == 1.0F)
+  if (GAMMA == 1.0F)
+  {
+    return GetBrighterColor(brightness, color, true);
+  }
+  return m_gammaCorrect.GetCorrection(brightness, color);
 }
 
 auto Tentacle3D::GetMixedColors(const size_t nodeNum,
@@ -383,39 +392,29 @@ auto Tentacle3D::GetMixedColors(const size_t nodeNum,
 #endif
   const Pixel mixedColorPixel = mixedColor;
   const Pixel mixedLowColorPixel = mixedLowColor;
-  //constexpr float gamma = 4.2;
-  //const float brightnessWithGamma = std::pow(brightness, 1.0F / gamma);
-  const float brightnessWithGamma = brightness;
-  //  const float brightnessWithGamma =
-  //      std::max(0.4F, std::pow(brightness * getLuma(color), 1.0F / gamma));
-  //  const float brightnessWithGammaLow =
-  //      std::max(0.4F, std::pow(brightness * getLuma(lowColor), 1.0F / gamma));
-  return std::make_tuple(
-      GetBrighterColor(brightnessWithGamma, mixedColorPixel, m_allowOverexposed),
-      GetBrighterColor(brightnessWithGamma, mixedLowColorPixel, m_allowOverexposed));
+  return std::make_tuple(GetBrighterColor(brightness, mixedColorPixel, m_allowOverexposed),
+                         GetBrighterColor(brightness, mixedLowColorPixel, m_allowOverexposed));
 }
 
 auto Tentacle3D::GetVertices() const -> std::vector<V3dFlt>
 {
 #if __cplusplus <= 201402L
   const auto xyvecs = m_tentacle->GetDampedXAndYVectors();
-  const auto xvec2D = std::get<0>(xyvecs);
-  const auto yvec2D = std::get<1>(xyvecs);
+  const auto& xvec2D = std::get<0>(xyvecs);
+  const auto& yvec2D = std::get<1>(xyvecs);
 #else
   const auto [xvec2D, yvec2D] = m_tentacle->GetDampedXAndYVectors();
 #endif
   const size_t n = xvec2D.size();
 
-  //  logInfo("Tentacle: {}, head.x = {}, head.y = {}, head.z = {}", "x", head.x, head.y, head.z);
-
   std::vector<V3dFlt> vec3d(n);
-  const auto x0 = static_cast<float>(m_head.x);
+  const float x0 = m_head.x;
   const auto y0 = static_cast<float>(m_head.y - yvec2D[0]);
   const auto z0 = static_cast<float>(m_head.z - xvec2D[0]);
   float xStep = 0.0;
-  if (std::abs(x0) < 10.0)
+  if (std::abs(x0) < 10.0F)
   {
-    const float xn = 0.1 * x0;
+    const float xn = 0.1F * x0;
     xStep = (x0 - xn) / static_cast<float>(n);
   }
   float x = x0;
@@ -434,6 +433,14 @@ auto Tentacle3D::GetVertices() const -> std::vector<V3dFlt>
 void Tentacles3D::AddTentacle(Tentacle3D&& t)
 {
   (void)m_tentacles.emplace_back(std::move(t));
+}
+
+void Tentacles3D::ColorMapsChanged()
+{
+  for (auto& t : m_tentacles)
+  {
+    t.ColorMapsChanged();
+  }
 }
 
 void Tentacles3D::SetAllowOverexposed(const bool val)

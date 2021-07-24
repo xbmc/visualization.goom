@@ -17,9 +17,9 @@ namespace GOOM::FILTERS
 // clang linking trouble with C++14 - should be able to use static constexpr
 const float NormalizedCoords::MAX_NORMALIZED_COORD = 2.0;
 const float NormalizedCoords::MIN_NORMALIZED_COORD = -MAX_NORMALIZED_COORD;
-float NormalizedCoords::s_ratioScreenToNormalizedCoord = 1.0;
-float NormalizedCoords::s_ratioNormalizedToScreenCoord = 1.0;
-float NormalizedCoords::s_minNormalizedCoordVal = 0.0;
+float NormalizedCoords::s_ratioScreenToNormalizedCoord = 1.0F;
+float NormalizedCoords::s_ratioNormalizedToScreenCoord = 1.0F;
+float NormalizedCoords::s_minNormalizedCoordVal = 0.0F;
 
 void NormalizedCoords::SetScreenDimensions(const uint32_t width,
                                            [[maybe_unused]] const uint32_t height,

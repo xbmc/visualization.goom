@@ -8,7 +8,6 @@
 #include <functional>
 #include <memory>
 
-#if __cplusplus <= 201402L
 namespace GOOM
 {
 
@@ -19,10 +18,6 @@ class RandomColorMaps;
 
 namespace TUBES
 {
-#else
-namespace GOOM::TUBES
-{
-#endif
 
 enum class ColorMapMixMode
 {
@@ -121,11 +116,7 @@ private:
   std::unique_ptr<TubeImpl> m_impl;
 };
 
-#if __cplusplus <= 201402L
 } // namespace TUBES
 } // namespace GOOM
-#else
-} // namespace GOOM::TUBES
-#endif
 
 #endif //VISUALIZATION_GOOM_TUBES_H

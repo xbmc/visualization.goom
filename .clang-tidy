@@ -8,8 +8,10 @@
 Checks: >
   -*,
   bugprone-*,
+  cert-*,
   clang-diagnostic-*,
   clang-analyzer-*,
+  concurrency-*,
   cppcoreguidelines-*,
   google-*,
   llvm-*,

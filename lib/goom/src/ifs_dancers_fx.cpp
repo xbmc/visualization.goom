@@ -44,6 +44,7 @@
 #include "goomutils/graphics/small_image_bitmaps.h"
 #include "goomutils/logging.h"
 #include "goomutils/random_colormaps.h"
+#include "goomutils/t_values.h"
 #include "ifs/colorizer.h"
 #include "ifs/fractal.h"
 #include "ifs/low_density_blurrer.h"
@@ -68,16 +69,16 @@ using IFS::Colorizer;
 using IFS::Fractal;
 using IFS::IfsPoint;
 using IFS::LowDensityBlurrer;
-using UTILS::GammaCorrection;
 using UTILS::GetRandInRange;
 using UTILS::ProbabilityOfMInN;
 using UTILS::RandomColorMaps;
 using UTILS::SmallImageBitmaps;
+using UTILS::TValue;
 using UTILS::Weights;
 
 inline auto MegaChangeColorMapEvent() -> bool
 {
-  return ProbabilityOfMInN(3, 10);
+  return ProbabilityOfMInN(5, 10);
 }
 
 // clang-format off
@@ -135,32 +136,34 @@ private:
 
   std::unique_ptr<Fractal> m_fractal{};
 
-  int m_cycle = 0;
-  int m_ifsIncr = 1; // dessiner l'ifs (0 = non: > = increment)
-  int m_decayIfs = 0; // disparition de l'ifs
-  int m_recayIfs = 0; // dedisparition de l'ifs
+  int32_t m_cycle = 0;
+  int32_t m_ifsIncr = 1; // dessiner l'ifs (0 = non: > = increment)
+  int32_t m_decayIfs = 0; // disparition de l'ifs
+  int32_t m_recayIfs = 0; // dedisparition de l'ifs
+  [[nodiscard]] auto GetIfsIncr() const -> int;
   void UpdateCycle();
   void UpdateDecay();
   void UpdateDecayAndRecay();
 
   IfsStats m_stats{};
 
-  static constexpr float LOW_DENSITY_GAMMA = 10.0F;
-  static constexpr float LOW_DENSITY_GAMMA_THRESHOLD = 0.01F;
-  const GammaCorrection m_lowDensityGammaCorrect{LOW_DENSITY_GAMMA, LOW_DENSITY_GAMMA_THRESHOLD};
+  // TODO Move to simi
+  TValue m_tMix{TValue::StepType::CONTINUOUS_REVERSIBLE, 0.01F};
+  static constexpr float POINT_BRIGHTNESS = 2.0F;
+  static constexpr float BITMAP_BRIGHTNESS = 1.0F;
+  void ChangeColorMaps();
+  void DrawNextIfsPoints();
+  void DrawPoint(const IfsPoint& point, float t, float tMix) const;
 
-  void ChangeColormaps();
   static constexpr uint32_t MAX_DENSITY_COUNT = 20;
   static constexpr uint32_t MIN_DENSITY_COUNT = 5;
   uint32_t m_lowDensityCount = MIN_DENSITY_COUNT;
   LowDensityBlurrer m_blurrer;
   float m_lowDensityBlurThreshold = 0.99F;
-  auto BlurLowDensityColors(size_t numPoints, const std::vector<IfsPoint>& lowDensityPoints) const
+  [[nodiscard]] auto BlurLowDensityColors(size_t numPoints,
+                                          const std::vector<IfsPoint>& lowDensityPoints) const
       -> bool;
-  void DrawNextIfsPoints();
-  void DrawPoint(const IfsPoint& point, const float tMix);
   void SetLowDensityColors(std::vector<IfsPoint>& points, uint32_t maxLowDensityCount) const;
-  [[nodiscard]] auto GetIfsIncr() const -> int;
 };
 
 IfsDancersFx::IfsDancersFx(const IGoomDraw* const draw,
@@ -270,7 +273,7 @@ IfsDancersFx::IfsDancersFxImpl::IfsDancersFxImpl(const IGoomDraw* const draw,
     m_goomInfo{std::move(info)},
     m_fractal{std::make_unique<Fractal>(
         m_draw->GetScreenWidth(), m_draw->GetScreenHeight(), m_colorizer.GetColorMaps(), &m_stats)},
-    m_blurrer{m_draw, 3}
+    m_blurrer{m_draw, 3, &m_colorizer}
 {
 }
 
@@ -278,6 +281,8 @@ IfsDancersFx::IfsDancersFxImpl::~IfsDancersFxImpl() noexcept = default;
 
 void IfsDancersFx::IfsDancersFxImpl::Init()
 {
+  m_stats.UpdateInit();
+
   m_fractal->Init();
   UpdateLowDensityThreshold();
 }
@@ -331,7 +336,9 @@ inline void IfsDancersFx::IfsDancersFxImpl::Log(const GoomStats::LogStatsValueFu
 
 void IfsDancersFx::IfsDancersFxImpl::Renew()
 {
-  ChangeColormaps();
+  m_stats.UpdateRenew();
+
+  ChangeColorMaps();
   m_colorizer.ChangeColorMode();
 
   constexpr float MIN_SPEED_AMP = 1.1F;
@@ -343,7 +350,7 @@ void IfsDancersFx::IfsDancersFxImpl::Renew()
   m_fractal->SetSpeed(std::max(1U, static_cast<uint32_t>(speedAmp * accelFactor)));
 }
 
-void IfsDancersFx::IfsDancersFxImpl::ChangeColormaps()
+void IfsDancersFx::IfsDancersFxImpl::ChangeColorMaps()
 {
   m_colorizer.ChangeColorMaps();
   m_blurrer.SetColorMode(BLURRER_COLOR_MODE_WEIGHTS.GetRandomWeighted());
@@ -358,7 +365,7 @@ void IfsDancersFx::IfsDancersFxImpl::ApplyNoDraw()
 
 void IfsDancersFx::IfsDancersFxImpl::UpdateIfs()
 {
-  m_stats.UpdateStart();
+  m_stats.UpdateBegin();
 
   UpdateDecayAndRecay();
   if (GetIfsIncr() <= 0)
@@ -427,6 +434,8 @@ void IfsDancersFx::IfsDancersFxImpl::UpdateCycle()
   // TODO: trouver meilleur soluce pour increment (mettre le code de gestion de l'ifs
   //       dans ce fichier)
   //       find the best solution for increment (put the management code of the ifs in this file)
+  m_tMix.Increment();
+
   m_cycle++;
   if (m_cycle < m_cycleLength)
   {
@@ -475,8 +484,8 @@ void IfsDancersFx::IfsDancersFxImpl::DrawNextIfsPoints()
   {
     t += tStep;
 
-    const uint32_t x = points[i].x;
-    const uint32_t y = points[i].y;
+    const uint32_t x = points[i].GetX();
+    const uint32_t y = points[i].GetY();
     if ((x >= m_goomInfo->GetScreenInfo().width) || (y >= m_goomInfo->GetScreenInfo().height))
     {
       continue;
@@ -484,19 +493,19 @@ void IfsDancersFx::IfsDancersFxImpl::DrawNextIfsPoints()
 
     if (!doneColorChange && MegaChangeColorMapEvent())
     {
-      ChangeColormaps();
+      ChangeColorMaps();
       doneColorChange = true;
     }
 
     numSelectedPoints++;
-    DrawPoint(points[i], t);
+    DrawPoint(points[i], t, m_tMix());
 
-    if (points[i].count <= m_lowDensityCount)
+    if (points[i].GetCount() <= m_lowDensityCount)
     {
       (void)lowDensityPoints.emplace_back(points[i]);
-      if (maxLowDensityCount < points[i].count)
+      if (maxLowDensityCount < points[i].GetCount())
       {
-        maxLowDensityCount = points[i].count;
+        maxLowDensityCount = points[i].GetCount();
       }
     }
   }
@@ -520,36 +529,33 @@ void IfsDancersFx::IfsDancersFxImpl::DrawNextIfsPoints()
   }
 }
 
-inline void IfsDancersFx::IfsDancersFxImpl::DrawPoint(const IfsPoint& point, const float tMix)
+inline void IfsDancersFx::IfsDancersFxImpl::DrawPoint(const IfsPoint& point,
+                                                      const float t,
+                                                      const float tMix) const
 {
-  const float fx =
-      static_cast<float>(point.x) / static_cast<float>(m_goomInfo->GetScreenInfo().width);
-  const float fy =
-      static_cast<float>(point.y) / static_cast<float>(m_goomInfo->GetScreenInfo().height);
+  const auto pX = static_cast<int32_t>(point.GetX());
+  const auto pY = static_cast<int32_t>(point.GetY());
+
+  const auto tX = static_cast<float>(pX) / static_cast<float>(m_draw->GetScreenWidth());
+  const auto tY = static_cast<float>(pY) / static_cast<float>(m_draw->GetScreenHeight());
+
+  const Pixel baseColor = point.GetSimiColorMap()->GetColor(t);
 
   //  const float t = static_cast<float>(m_cycle) / static_cast<float>(m_cycleLength);
-  const float t = tMix;
-  if (point.simi->currentPointBitmap == nullptr)
+  if (point.GetSimiCurrentPointBitmap() == nullptr)
   {
-    constexpr float BRIGHTNESS = 2.0F;
-    const Pixel mixedColor = m_colorizer.GetMixedColor(
-        point.simi->colorMap->GetColor(t), point.count, BRIGHTNESS, false, tMix, fx, fy);
-    const std::vector<Pixel> colors{mixedColor, mixedColor};
-    m_draw->DrawPixels(static_cast<int32_t>(point.x), static_cast<int32_t>(point.y), colors);
+    const Pixel mixedColor =
+        m_colorizer.GetMixedColor(baseColor, point.GetCount(), POINT_BRIGHTNESS, tMix, tX, tY);
+    m_draw->DrawPixels(pX, pY, {mixedColor, mixedColor});
   }
   else
   {
-    constexpr float BRIGHTNESS = 0.07F;
-    const Pixel mixedColor = m_colorizer.GetMixedColor(point.simi->colorMap->GetColor(t),
-                                                       point.count, BRIGHTNESS, true, tMix, fx, fy);
-    const std::vector<Pixel> colors{mixedColor, mixedColor};
-    const auto getColor1 = [&]([[maybe_unused]] const size_t x, [[maybe_unused]] const size_t y,
-                               [[maybe_unused]] const Pixel& b) -> Pixel { return mixedColor; };
-    const auto getColor2 = [&]([[maybe_unused]] const size_t x, [[maybe_unused]] const size_t y,
-                               [[maybe_unused]] const Pixel& b) -> Pixel { return mixedColor; };
-    const std::vector<IGoomDraw::GetBitmapColorFunc> getColors{getColor1, getColor2};
-    const PixelBuffer& bitmap{*point.simi->currentPointBitmap};
-    m_draw->Bitmap(static_cast<int32_t>(point.x), static_cast<int32_t>(point.y), bitmap, getColors);
+    const Pixel mixedColor =
+        m_colorizer.GetMixedColor(baseColor, point.GetCount(), BITMAP_BRIGHTNESS, tMix, tX, tY);
+    const auto getColor = [&]([[maybe_unused]] const size_t x, [[maybe_unused]] const size_t y,
+                              [[maybe_unused]] const Pixel& b) -> Pixel { return mixedColor; };
+    const PixelBuffer& bitmap{*point.GetSimiCurrentPointBitmap()};
+    m_draw->Bitmap(pX, pY, bitmap, {getColor, getColor}, point.GetSimiOverExposeBitmaps());
   }
 }
 
@@ -569,17 +575,16 @@ void IfsDancersFx::IfsDancersFxImpl::SetLowDensityColors(std::vector<IfsPoint>& 
 {
   const float logMaxLowDensityCount = std::log(static_cast<float>(maxLowDensityCount));
 
-  float t = 0.0;
+  float t = 0.0F;
   const float tStep = 1.0F / static_cast<float>(points.size());
   for (const auto& point : points)
   {
-    const float logAlpha =
-        point.count <= 1 ? 1.0F : std::log(static_cast<float>(point.count)) / logMaxLowDensityCount;
-    constexpr float BRIGHTNESS = 1.0F;
-    const Pixel color = m_lowDensityGammaCorrect.GetCorrection(BRIGHTNESS * logAlpha,
-                                                               point.simi->colorMap->GetColor(t));
-    m_draw->DrawPixelsUnblended(static_cast<int32_t>(point.x), static_cast<int32_t>(point.y),
-                                {color, color});
+    const float logAlpha = point.GetCount() <= 1 ? 1.0F
+                                                 : std::log(static_cast<float>(point.GetCount())) /
+                                                       logMaxLowDensityCount;
+
+    DrawPoint(point, t, logAlpha);
+
     t += tStep;
   }
 }

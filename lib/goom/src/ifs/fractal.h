@@ -2,10 +2,12 @@
 #define VISUALIZATION_GOOM_FRACTAL_H
 
 #include "goom_graphic.h"
+#include "goomutils/t_values.h"
 #include "ifs_types.h"
 
 #include <cstdint>
 #include <functional>
+#include <memory>
 #include <vector>
 
 #if __cplusplus <= 201402L
@@ -29,34 +31,36 @@ namespace GOOM::IFS
 {
 #endif
 
-struct Similitude
-{
-  Dbl dbl_cx = 0;
-  Dbl dbl_cy = 0;
-  Dbl dbl_r1 = 0;
-  Dbl dbl_r2 = 0;
-  Dbl A1 = 0;
-  Dbl A2 = 0;
-  Flt cosA1 = 0;
-  Flt sinA1 = 0;
-  Flt cosA2 = 0;
-  Flt sinA2 = 0;
-  Flt cx = 0;
-  Flt cy = 0;
-  Flt r1 = 0;
-  Flt r2 = 0;
-  const UTILS::IColorMap* colorMap{};
-  Pixel color = Pixel::BLACK;
-  const UTILS::ImageBitmap* currentPointBitmap{};
-};
+struct Similitude;
 
-struct IfsPoint
+class IfsPoint
 {
-  uint32_t x = 0;
-  uint32_t y = 0;
-  uint32_t count = 0;
-  Pixel color = Pixel::BLACK;
-  const Similitude* simi{};
+public:
+  IfsPoint() noexcept = default;
+  IfsPoint(const uint32_t x, const uint32_t y, const uint32_t count) noexcept
+    : m_x{x}, m_y{y}, m_count{count}
+  {
+  }
+  [[nodiscard]] auto GetX() const -> uint32_t { return m_x; }
+  [[nodiscard]] auto GetY() const -> uint32_t { return m_y; }
+  void SetX(const uint32_t val) { m_x = val; }
+  void SetY(const uint32_t val) { m_y = val; }
+  [[nodiscard]] auto GetColor() const -> Pixel { return m_color; }
+  void SetColor(const Pixel& val) { m_color = val; }
+  [[nodiscard]] auto GetCount() const -> uint32_t { return m_count; }
+  void SetCount(const uint32_t val) { m_count = val; }
+  [[nodiscard]] auto GetSimiColor() const -> Pixel;
+  [[nodiscard]] auto GetSimiColorMap() const -> const UTILS::IColorMap*;
+  [[nodiscard]] auto GetSimiCurrentPointBitmap() const -> const UTILS::ImageBitmap*;
+  [[nodiscard]] auto GetSimiOverExposeBitmaps() const -> bool;
+
+private:
+  uint32_t m_x = 0;
+  uint32_t m_y = 0;
+  uint32_t m_count = 0;
+  Pixel m_color = Pixel::BLACK;
+  const Similitude* m_simi{};
+  friend class FractalHits;
 };
 
 class FractalHits
@@ -91,11 +95,11 @@ public:
           uint32_t screenHeight,
           const UTILS::RandomColorMaps& cm,
           IfsStats* s);
-  ~Fractal() noexcept = default;
+  ~Fractal() noexcept;
   Fractal(const Fractal&) noexcept = delete;
   Fractal(const Fractal&&) noexcept = delete;
-  auto operator=(const Fractal&) -> Fractal& = delete;
-  auto operator=(const Fractal&&) -> Fractal& = delete;
+  [[nodiscard]] auto operator=(const Fractal&) -> Fractal& = delete;
+  [[nodiscard]] auto operator=(const Fractal&&) -> Fractal& = delete;
 
   void Init();
   void Reset();
@@ -112,7 +116,7 @@ private:
   static constexpr size_t NUM_SIMI_GROUPS = 5;
   static constexpr uint32_t MIN_MAX_COUNT_TIMES_SPEED = 950;
   static constexpr uint32_t MAX_MAX_COUNT_TIMES_SPEED = 1500;
-  std::vector<Similitude> m_components;
+  std::unique_ptr<std::vector<Similitude>> m_components;
 
   const UTILS::RandomColorMaps* const m_colorMaps;
   const UTILS::SmallImageBitmaps* m_smallBitmaps{};
@@ -123,13 +127,18 @@ private:
   uint32_t m_numSimi = 0;
   uint32_t m_depth = 0;
   uint32_t m_count = 0;
-  static constexpr uint32_t INITIAL_SPEED = 6;
-  uint32_t m_speed = INITIAL_SPEED;
-  uint32_t m_maxCountTimesSpeed = MAX_MAX_COUNT_TIMES_SPEED;
+
   Dbl m_r1Mean = 0.0;
   Dbl m_r2Mean = 0.0;
   Dbl m_dr1Mean = 0.0;
   Dbl m_dr2Mean = 0.0;
+
+  static constexpr uint32_t INITIAL_SPEED = 6;
+  uint32_t m_prevSpeed;
+  uint32_t m_speed;
+  static constexpr uint32_t NUM_SPEED_TRANSITION_STEPS = 500;
+  UTILS::TValue m_speedTransitionT;
+  uint32_t m_maxCountTimesSpeed = MAX_MAX_COUNT_TIMES_SPEED;
 
   FractalHits m_hits1;
   FractalHits m_hits2;
@@ -143,28 +152,17 @@ private:
   void ResetCurrentIfsFunc();
   void Trace(uint32_t curDepth, const FltPoint& p0);
   void UpdateHits(const Similitude& simi, const FltPoint& p);
-  using IfsFunc =
-      std::function<FltPoint(const Similitude& simi, float x1, float y1, float x2, float y2)>;
+  using IfsFunc = std::function<FltPoint(const Similitude& simi, Flt x1, Flt y1, Flt x2, Flt y2)>;
   IfsFunc m_curFunc{};
-  auto Transform(const Similitude& simi, const FltPoint& p0) const -> FltPoint;
-  static auto GaussRand(Dbl c, Dbl S, Dbl A_mult_1_minus_exp_neg_S) -> Dbl;
-  static auto HalfGaussRand(Dbl c, Dbl S, Dbl A_mult_1_minus_exp_neg_S) -> Dbl;
+  [[nodiscard]] auto Transform(const Similitude& simi, const FltPoint& p0) const -> FltPoint;
+  [[nodiscard]] static auto GaussRand(Dbl c, Dbl S, Dbl A_mult_1_minus_exp_neg_S) -> Dbl;
+  [[nodiscard]] static auto HalfGaussRand(Dbl c, Dbl S, Dbl A_mult_1_minus_exp_neg_S) -> Dbl;
 #if __cplusplus <= 201402L
-  static auto Get_1_minus_exp_neg_S(Dbl S) -> Dbl;
+  [[nodiscard]] static auto Get_1_minus_exp_neg_S(Dbl S) -> Dbl;
 #else
-  static constexpr auto Get_1_minus_exp_neg_S(Dbl S) -> Dbl;
+  [[nodiscard]] static constexpr auto Get_1_minus_exp_neg_S(Dbl S) -> Dbl;
 #endif
 };
-
-inline auto Fractal::GetSpeed() const -> uint32_t
-{
-  return m_speed;
-}
-
-inline void Fractal::SetSpeed(const uint32_t val)
-{
-  m_speed = val;
-}
 
 inline auto Fractal::GetMaxHitCount() const -> uint32_t
 {

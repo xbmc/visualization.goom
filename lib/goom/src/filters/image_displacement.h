@@ -7,7 +7,6 @@
 #include <stdexcept>
 #include <string>
 
-#if __cplusplus <= 201402L
 namespace GOOM
 {
 
@@ -18,10 +17,6 @@ class ImageBitmap;
 
 namespace FILTERS
 {
-#else
-namespace GOOM::FILTERS
-{
-#endif
 
 class ImageDisplacement
 {
@@ -92,11 +87,7 @@ inline void ImageDisplacement::SetZoomFactor(const float value)
   m_zoomFactor = value;
 }
 
-#if __cplusplus <= 201402L
 } // namespace FILTERS
 } // namespace GOOM
-#else
-} // namespace GOOM::FILTERS
-#endif
 
 #endif //VISUALIZATION_GOOM_IMAGE_DISPLACEMENT_H
