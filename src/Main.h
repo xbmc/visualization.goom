@@ -2,7 +2,7 @@
 #define MAIN_H
 
 /*
- *  Copyright (C) 2005-2020 Team Kodi (https://kodi.tv)
+ *  Copyright (C) 2005-2021 Team Kodi (https://kodi.tv)
  *  Copyright (C) 2005-2013 Team XBMC
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
