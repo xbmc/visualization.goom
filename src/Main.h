@@ -32,9 +32,9 @@ extern "C"
 #define GOOM_TEXTURE_WIDTH 1280
 #define GOOM_TEXTURE_HEIGHT 720
 
-class ATTRIBUTE_HIDDEN CVisualizationGoom : public kodi::addon::CAddonBase,
-                                            public kodi::addon::CInstanceVisualization,
-                                            private kodi::gui::gl::CShaderProgram
+class ATTR_DLL_LOCAL CVisualizationGoom : public kodi::addon::CAddonBase,
+                                          public kodi::addon::CInstanceVisualization,
+                                          private kodi::gui::gl::CShaderProgram
 {
 public:
   CVisualizationGoom();
