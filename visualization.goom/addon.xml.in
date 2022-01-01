@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="visualization.goom"
-  version="20.0.0"
+  version="20.0.1"
   name="Goom"
   provider-name="Team Kodi">
   <requires>@ADDON_DEPENDS@</requires>
@@ -24,8 +24,10 @@
     <summary lang="da_DK">Goom 2k4 Visualisering</summary>
     <summary lang="de_DE">Goom 2k4-Visualisierung</summary>
     <summary lang="en_GB">Goom 2k4 Visualization</summary>
+    <summary lang="zh_CN">Goom 2k4可视化程序</summary>
     <description lang="da_DK">Goom 2k4-visualiseringen understøtter effekter som tentakler, flash, stjerner, fyrværkeri, bølger, sløring og glød og indeholder et stort antal vilde hypnotiske effekter, der danser, hvirvler og popper med musikken.</description>
     <description lang="de_DE">Die Goom 2k4-Visualisierung unterstützt Effekte wie Tentakel, Blitz, Sterne, Feuerwerk, Wellen, Unschärfen und Glühen und enthält eine große Anzahl abgefahrener hypnotischer Effekte, die mit der Musik tanzen, wirbeln und knallen.</description>
     <description lang="en_GB">The Goom 2k4 visualization supports effects like Tentacles, Flash, Stars, Fireworks, Waves, Blurs and Glows and includes a large number of trippy hypnotic effects that dance, swirl and pop with the music,</description>
+    <description lang="zh_CN">Goom 2k4 可视化支持像触须、闪光、星星、烟花、波浪、模糊和发光这样的效果，并包括大量随着音乐跳舞、旋转和流行的迷幻催眠效果，</description>
   </extension>
 </addon>

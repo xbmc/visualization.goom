@@ -12,7 +12,7 @@
 
 CVisualizationGoom::CVisualizationGoom()
 {
-  switch (kodi::GetSettingInt("quality"))
+  switch (kodi::addon::GetSettingInt("quality"))
   {
     case 0:
       m_tex_width = 512;
@@ -36,7 +36,7 @@ CVisualizationGoom::CVisualizationGoom()
   m_goomBufferSize = m_goomBufferLen * sizeof(uint32_t);
 
 #ifdef HAS_GL
-  m_usePixelBufferObjects = kodi::GetSettingBoolean("use_pixel_buffer_objects");
+  m_usePixelBufferObjects = kodi::addon::GetSettingBoolean("use_pixel_buffer_objects");
 #endif
 
   m_window_width = Width();
@@ -83,8 +83,8 @@ bool CVisualizationGoom::Start(int iChannels,
   m_activeQueue.push(sp);
 
   // Init GL parts
-  if (!LoadShaderFiles(kodi::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/vert.glsl"),
-                       kodi::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/frag.glsl")))
+  if (!LoadShaderFiles(kodi::addon::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/vert.glsl"),
+                       kodi::addon::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/frag.glsl")))
   {
     kodi::Log(ADDON_LOG_FATAL, "Start: Failed to load GL shaders.");
     return false;
@@ -194,7 +194,7 @@ bool CVisualizationGoom::UpdateTrack(const kodi::addon::VisualizationTrack& trac
   if (m_lastSongName != m_currentSongName)
     m_titleChange = true;
 
-  m_showTitleAlways = kodi::GetSettingBoolean("show_title_always");
+  m_showTitleAlways = kodi::addon::GetSettingBoolean("show_title_always");
 
   return true;
 }
