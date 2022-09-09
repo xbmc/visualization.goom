@@ -64,7 +64,7 @@ CVisualizationGoom::~CVisualizationGoom()
 bool CVisualizationGoom::Start(int iChannels,
                                int iSamplesPerSec,
                                int iBitsPerSample,
-                               std::string szSongName)
+                               const std::string& szSongName)
 {
   if (m_started)
   {
@@ -158,10 +158,7 @@ bool CVisualizationGoom::OnEnabled()
 //-- Audiodata ----------------------------------------------------------------
 // Called by Kodi to pass new audio data to the vis
 //-----------------------------------------------------------------------------
-void CVisualizationGoom::AudioData(const float* pAudioData,
-                                   int iAudioDataLength,
-                                   float* pFreqData,
-                                   int iFreqDataLength)
+void CVisualizationGoom::AudioData(const float* pAudioData, size_t iAudioDataLength)
 {
   if (!m_started)
   {
@@ -304,8 +301,8 @@ void CVisualizationGoom::Process()
     return;
   }
 
-#ifdef _WIN32  // Windows not allow variable stack size, viz bring only up to 2 channels
-  float floatAudioData[NUM_AUDIO_SAMPLES*AUDIO_SAMPLE_LEN];
+#ifdef _WIN32 // Windows not allow variable stack size, viz bring only up to 2 channels
+  float floatAudioData[NUM_AUDIO_SAMPLES * AUDIO_SAMPLE_LEN];
 #else
   float floatAudioData[m_audioBufferLen];
 #endif
