@@ -40,14 +40,14 @@ public:
   CVisualizationGoom();
   ~CVisualizationGoom() override;
 
-  bool Start(int channels, int samplesPerSec, int bitsPerSample, std::string songName) override;
+  bool Start(int channels,
+             int samplesPerSec,
+             int bitsPerSample,
+             const std::string& songName) override;
   void Stop() override;
   bool IsDirty() override;
   void Render() override;
-  void AudioData(const float* audioData,
-                 int audioDataLength,
-                 float* freqData,
-                 int freqDataLength) override;
+  void AudioData(const float* audioData, size_t audioDataLength) override;
   bool UpdateTrack(const kodi::addon::VisualizationTrack& track) override;
 
   // kodi::gui::gl::CShaderProgram
@@ -90,7 +90,7 @@ private:
 #ifdef HAS_GL
   bool m_usePixelBufferObjects =
       false; // 'true' is supposed to give better performance but it's not obvious.
-      // And when 'true', there may be issues with screen refreshes when changing windows in Kodi.
+  // And when 'true', there may be issues with screen refreshes when changing windows in Kodi.
 #endif
   GLuint m_textureId = 0;
   const static int g_numPbos = 3;
