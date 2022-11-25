@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeSharedSettings">
+    <configurations>
+      <configuration PROFILE_NAME="gcc-12-RelWithDebInfo" ENABLED="true" GENERATION_DIR="build-clion-gcc-12-RelWithDebInfo-nexus" CONFIG_NAME="RelWithDebInfo" TOOLCHAIN_NAME="gcc-12" GENERATION_OPTIONS="-G &quot;Unix Makefiles&quot; -DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF -DIS_THIS_MAIN_CMAKE_SCRIPT=1 -DENABLE_TESTING=1 -DUSE_MAGIC_ENUM=1 -DOVERRIDE_PATHS=1 -DKODI_ROOT_DIR=../.." BUILD_OPTIONS="-- -j 9" />
+      <configuration PROFILE_NAME="docker-clang-15-RelWithDebInfo" ENABLED="true" GENERATION_DIR="build-clion-docker-clang-15-RelWithDebInfo-nexus" CONFIG_NAME="RelWithDebInfo" TOOLCHAIN_NAME="docker-clang-15" GENERATION_OPTIONS="-DIS_THIS_MAIN_CMAKE_SCRIPT=1 -DENABLE_TESTING=1 -DUSE_MAGIC_ENUM=1 -DOVERRIDE_PATHS=1 -DKODI_ROOT_DIR=/tmp/xbmc" BUILD_OPTIONS="-- -j 9" NO_GENERATOR="true" />
+      <configuration PROFILE_NAME="docker-clang-15-Debug" ENABLED="true" GENERATION_DIR="build-clion-docker-clang-15-Debug-nexus" CONFIG_NAME="Debug" TOOLCHAIN_NAME="docker-clang-15" GENERATION_OPTIONS="-DIS_THIS_MAIN_CMAKE_SCRIPT=1 -DENABLE_TESTING=1 -DUSE_MAGIC_ENUM=1 -DOVERRIDE_PATHS=1 -DKODI_ROOT_DIR=/tmp/xbmc" BUILD_OPTIONS="-- -j 9" NO_GENERATOR="true" />
+      <configuration PROFILE_NAME="docker-gcc-12-RelWithDebInfo" ENABLED="true" GENERATION_DIR="build-clion-docker-gcc-12-RelWithDebInfo-nexus" CONFIG_NAME="RelWithDebInfo" TOOLCHAIN_NAME="docker-gcc-12" GENERATION_OPTIONS="-DIS_THIS_MAIN_CMAKE_SCRIPT=1 -DENABLE_TESTING=1 -DUSE_MAGIC_ENUM=1 -DOVERRIDE_PATHS=1 -DKODI_ROOT_DIR=/tmp/xbmc" BUILD_OPTIONS="-- -j 9" NO_GENERATOR="true" />
+      <configuration PROFILE_NAME="docker-gcc-12-Release" ENABLED="true" GENERATION_DIR="build-clion-docker-gcc-12-Release-nexus" CONFIG_NAME="Release" TOOLCHAIN_NAME="docker-gcc-12" GENERATION_OPTIONS="-DIS_THIS_MAIN_CMAKE_SCRIPT=1 -DENABLE_TESTING=1 -DUSE_MAGIC_ENUM=1 -DOVERRIDE_PATHS=1 -DKODI_ROOT_DIR=/tmp/xbmc" BUILD_OPTIONS="-- -j 9" NO_GENERATOR="true" />
+      <configuration PROFILE_NAME="docker-gcc-12-Release-matrix" ENABLED="true" GENERATION_DIR="build-clion-docker-gcc-12-Release-matrix" CONFIG_NAME="Release" TOOLCHAIN_NAME="docker-gcc-12" GENERATION_OPTIONS="-DIS_THIS_MAIN_CMAKE_SCRIPT=1 -DENABLE_TESTING=1 -DUSE_MAGIC_ENUM=1 -DOVERRIDE_PATHS=1 -DKODI_ROOT_DIR=/tmp/xbmc" BUILD_OPTIONS="-- -j 9" NO_GENERATOR="true" />
+    </configurations>
+  </component>
+</project>

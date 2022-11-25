@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
+  <component name="CidrRootsConfiguration">
+    <excludeRoots>
+      <file path="$PROJECT_DIR$/build-docker-clang-15-RelWithDebInfo-nexus" />
+      <file path="$PROJECT_DIR$/build-clion-docker-clang-15-Debug-nexus" />
+      <file path="$PROJECT_DIR$/build-clion-docker-clang-15-RelWithDebInfo-nexus" />
+      <file path="$PROJECT_DIR$/build-clion-docker-clang-16-RelWithDebInfo-nexus" />
+      <file path="$PROJECT_DIR$/build-clion-docker-gcc-10-Release-matrix" />
+      <file path="$PROJECT_DIR$/build-clion-docker-gcc-12-RelWithDebInfo-nexus" />
+      <file path="$PROJECT_DIR$/build-clion-docker-gcc-12-Release-matrix" />
+      <file path="$PROJECT_DIR$/build-clion-docker-gcc-12-Release-nexus" />
+    </excludeRoots>
+  </component>
+</project>

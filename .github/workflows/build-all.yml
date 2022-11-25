@@ -1,0 +1,136 @@
+name: build goom-lib
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: []
+
+env:
+  CLANG_VERSION: 14
+  GCC_VERSION: 11
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: "Ubuntu Clang - RelWithDebInfo",
+            os: ubuntu-20.04,
+            artifact: "ubuntu_clang-$CLANG_VERSION_RelWithDebInfo.7z",
+            cc: "clang-$CLANG_VERSION",
+            cxx: "clang-$CLANG_VERSION",
+            build_type: "RelWithDebInfo",
+            archiver: "7z a"
+          }
+        - {
+            name: "Ubuntu Clang - Release",
+            os: ubuntu-20.04,
+            artifact: "ubuntu_clang-$CLANG_VERSION_Release.7z",
+            cc: "clang-$CLANG_VERSION",
+            cxx: "clang-$CLANG_VERSION",
+            build_type: "Release",
+            archiver: "7z a"
+          }
+        - {
+            name: "Ubuntu GCC - RelWithDebInfo",
+            os: ubuntu-latest,
+            artifact: "ubuntu_gcc-$GCC_VERSION_RelWithDebInfo.7z",
+            cc: "gcc-$GCC_VERSION",
+            cxx: "g++-$GCC_VERSION",
+            build_type: "RelWithDebInfo",
+            archiver: "7z a"
+          }
+        - {
+            name: "Ubuntu GCC - Release",
+            os: ubuntu-latest,
+            artifact: "ubuntu_gcc-$GCC_VERSION_Release.7z",
+            cc: "gcc-$GCC_VERSION",
+            cxx: "g++-$GCC_VERSION",
+            build_type: "Release",
+            archiver: "7z a"
+          }
+        - {
+            name: "MacOS Latest Clang - Release",
+            os: macos-latest,
+            artifact: "macos_clang_Release.7z",
+            build_type: "Release",
+            cc: "clang",
+            cxx: "clang++",
+            archiver: "7za a"
+          }
+        - {
+            name: "Windows Latest MSVC - Release",
+            os: windows-latest,
+            artifact: "windows_msvc.7z",
+            build_type: "Release",
+            cc: "cl",
+            cxx: "cl",
+            archiver: "7z a",
+          }
+
+    env:
+      GOOM_DIR: depends/goom-libs
+      BUILD_DIR: build-${{ matrix.config.cxx }}-${{ matrix.config.build_type }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Print env
+        run: |
+          echo github.ref: ${{ github.ref }}
+          echo github.event_name: ${{ github.event_name }}
+          echo github.workflow: ${{ github.workflow }}
+          echo github.event_path: ${{ github.event_path }}
+          echo github.workspace: ${{ github.workspace }}
+          echo cc: ${{ matrix.config.cc }}
+          echo cxx: ${{ matrix.config.cxx }}
+          echo GOOM_DIR: ${{ env.GOOM_DIR }}
+          echo BUILD_DIR: ${{ env.BUILD_DIR }}
+
+      - name: Install Clang-${{ env.CLANG_VERSION }}
+        if: startsWith(matrix.config.name, 'Ubuntu Clang')
+        uses: egor-tensin/setup-clang@v1
+        with:
+          version: ${{ env.CLANG_VERSION }}
+          platform: x64
+
+      - name: Install GCC-${{ env.GCC_VERSION }}
+        if: startsWith(matrix.config.name, 'Ubuntu GCC')
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: ${{ env.GCC_VERSION }}
+          platform: x64
+
+      - name: Configure
+        shell: bash
+        run: |
+          mkdir ${{ env.GOOM_DIR }}/${{ env.BUILD_DIR }}
+          cd ${{ env.GOOM_DIR }}/${{ env.BUILD_DIR }}
+          CC=${{ matrix.config.cc }} CXX=${{ matrix.config.cxx }} cmake \
+                                                                        -DIS_THIS_MAIN_CMAKE_SCRIPT=1 \
+                                                                        -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+                                                                        -DENABLE_TESTING=0 \
+                                                                        -DUSE_MAGIC_ENUM=1 \
+                                                                        ..
+
+      - name: Build
+        shell: bash
+        run: |
+          cd ${{ env.GOOM_DIR }}
+          CC=${{ matrix.config.cc }} CXX=${{ matrix.config.cxx }} cmake \
+                                                                  --build ${{ env.BUILD_DIR }} \
+                                                                  --config ${{ matrix.config.build_type }}
+
+      # - name: Archive goom artifacts
+      #   if: startsWith(matrix.config.name, 'Windows')
+      #   uses: actions/upload-artifact@v3
+      #   with:
+      #     name: build-archive
+      #     path: |
+      #       ${{ env.GOOM_DIR }}/${{ env.BUILD_DIR }}
+      #       retention-days: 5

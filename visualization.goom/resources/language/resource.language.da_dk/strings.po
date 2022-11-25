@@ -18,12 +18,12 @@ msgstr ""
 "X-Generator: Weblate 4.8\n"
 
 msgctxt "Addon Summary"
-msgid "Goom 2k4 Visualization"
-msgstr "Goom 2k4 Visualisering"
+msgid "Goom++ Visualization"
+msgstr "Goom++ Visualisering"
 
 msgctxt "Addon Description"
 msgid "The Goom 2k4 visualization supports effects like Tentacles, Flash, Stars, Fireworks, Waves, Blurs and Glows and includes a large number of trippy hypnotic effects that dance, swirl and pop with the music,"
-msgstr "Goom 2k4-visualiseringen understøtter effekter som tentakler, flash, stjerner, fyrværkeri, bølger, sløring og glød og indeholder et stort antal vilde hypnotiske effekter, der danser, hvirvler og popper med musikken."
+msgstr "Goom++ visualiseringen understøtter effekter som tentakler, flash, stjerner, fyrværkeri, bølger, sløring og glød og indeholder et stort antal vilde hypnotiske effekter, der danser, hvirvler og popper med musikken."
 
 # settings labels
 msgctxt "#30000"

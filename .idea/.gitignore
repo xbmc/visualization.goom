@@ -1,0 +1,15 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
+# Extra ignored files
+/dictionaries/
+/inspectionProfiles/
+/sonarlint/
+/markdown.xml
+/misc.xml
+/modules.xml
+/vcs.xml
+/visualization.goom.iml

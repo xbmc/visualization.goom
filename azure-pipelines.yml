@@ -59,7 +59,7 @@ jobs:
     - task: CMake@1
       inputs:
         workingDirectory: 'build'
-        cmakeArgs: '-T host=x64 -G "$(GENERATOR)" -A $(ARCHITECTURE) $(CMAKE_DEFINES) -DADDONS_TO_BUILD=$(app_id) -DCMAKE_BUILD_TYPE=$(CONFIGURATION) -DADDONS_DEFINITION_DIR=$(Pipeline.Workspace)/$(app_id)/build/definition -DADDON_SRC_PREFIX=../.. -DCMAKE_INSTALL_PREFIX=../../kodi/addons -DPACKAGE_ZIP=1 ../../kodi/cmake/addons'
+        cmakeArgs: '-T host=x64 -A $(ARCHITECTURE) $(CMAKE_DEFINES) -DADDONS_TO_BUILD=$(app_id) -DCMAKE_BUILD_TYPE=$(CONFIGURATION) -DADDONS_DEFINITION_DIR=$(Pipeline.Workspace)/$(app_id)/build/definition -DADDON_SRC_PREFIX=../.. -DCMAKE_INSTALL_PREFIX=../../kodi/addons -DPACKAGE_ZIP=1 ../../kodi/cmake/addons'
 
     - task: CMake@1
       inputs:

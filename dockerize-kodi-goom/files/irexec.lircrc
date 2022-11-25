@@ -1,0 +1,10 @@
+#
+# Use the irexec service to just echo KEY_SLEEP button presses.
+#
+
+begin
+    prog   = irexec
+    button = KEY_SLEEP
+    config = echo "KEY_SLEEP"
+end
+

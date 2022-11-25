@@ -12,8 +12,8 @@ jobs:
         include:
         - name: "Debian package test"
           os: ubuntu-20.04
-          CC: gcc
-          CXX: g++
+          CC: gcc-10
+          CXX: g++-10
           DEBIAN_BUILD: true
         #- os: ubuntu-20.04
           #CC: gcc

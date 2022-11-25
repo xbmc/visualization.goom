@@ -18,29 +18,42 @@ msgstr ""
 "X-Generator: Weblate 4.7.2\n"
 
 msgctxt "Addon Summary"
-msgid "Goom 2k4 Visualization"
-msgstr "Goom 2k4-Visualisierung"
+msgid "Goom++ Visualization"
+msgstr "Goom++ Visualisierung"
 
 msgctxt "Addon Description"
-msgid "The Goom 2k4 visualization supports effects like Tentacles, Flash, Stars, Fireworks, Waves, Blurs and Glows and includes a large number of trippy hypnotic effects that dance, swirl and pop with the music,"
-msgstr "Die Goom 2k4-Visualisierung unterstützt Effekte wie Tentakel, Blitz, Sterne, Feuerwerk, Wellen, Unschärfen und Glühen und enthält eine große Anzahl abgefahrener hypnotischer Effekte, die mit der Musik tanzen, wirbeln und knallen."
+msgid "The Goom++ visualization supports effects like Tentacles, Flash, Stars, Fireworks, Waves, Blurs and Glows and includes a large number of trippy hypnotic effects that dance, swirl and pop with the music,"
+msgstr "Die Goom++ Visualisierung unterstützt Effekte wie Tentakel, Blitz, Sterne, Feuerwerk, Wellen, Unschärfen und Glühen und enthält eine große Anzahl trippiger hypnotischer Effekte, die mit der Musik tanzen, wirbeln und knallen."
 
-# settings labels
+#settings labels
+
 msgctxt "#30000"
-msgid "Show titles always"
+msgid "Show title"
 msgstr "Titel immer anzeigen"
 
 msgctxt "#30001"
-msgid "If set, the title will be displayed continuously, otherwise it will only be shown briefly on change."
-msgstr "Wenn aktiviert, wird der Titel fortlaufend angezeigt. Andernfalls wird er nur bei Änderung kurz angezeigt."
+msgid "When to show the music title."
+msgstr "Wenn festgelegt, wird der Titel fortlaufend angezeigt, andernfalls wird er bei Änderung nur kurz angezeigt."
+
+msgctxt "#30011"
+msgid "At Start"
+msgstr ""
+
+msgctxt "#30012"
+msgid "Always"
+msgstr ""
+
+msgctxt "#30013"
+msgid "Never"
+msgstr ""
 
 msgctxt "#30002"
 msgid "Render quality"
 msgstr "Anzeigequalität"
 
 msgctxt "#30003"
-msgid "If the system does not do the display in a high resolution, it can be reduced."
-msgstr "Wenn das System die Darstellung in hoher Auflösung nicht schafft, kann diese reduziert werden."
+msgid "If the Kodi is slow with a higher render quality, then try reducing it."
+msgstr "Wenn das System die Anzeige nicht in hoher Auflösung ausführt, kann sie reduziert werden."
 
 msgctxt "#30004"
 msgid "Lowest (512x256)"
@@ -55,9 +68,25 @@ msgid "Standard (1280x720)"
 msgstr "Standard (1280 x 720)"
 
 msgctxt "#30007"
-msgid "Use OpenGL Pixel Buffer Objects"
-msgstr "OpenGL-Pixelpufferobjekte verwenden"
+msgid "Medium High (1600x900)"
+msgstr "Mittelhoch (1600x900)"
 
 msgctxt "#30008"
+msgid "High (1920x1080)"
+msgstr "Hoch (1920x1080)"
+
+msgctxt "#30009"
+msgid "Use OpenGL Pixel Buffer Objects"
+msgstr "Verwenden Sie OpenGL-Pixelpufferobjekte"
+
+msgctxt "#30010"
 msgid "If set, then OpenGL will use a faster pixel data transfer option for the Goom window."
-msgstr "Wenn aktiviert, verwendet OpenGL eine schnellere Option zur Übertragung von Pixeldaten für das Goom-Fenster."
+msgstr "Wenn festgelegt, verwendet OpenGL eine schnellere Option zur Übertragung von Pixeldaten für das Goom-Fenster."
+
+msgctxt "#30014"
+msgid "Goom-Zustand anzeigen"
+msgstr ""
+
+msgctxt "#30015"
+msgid "If set, then the current Goom state values will be overlaid on the main Goom window."
+msgstr "Wenn gesetzt, werden die aktuellen Goom-Statuswerte über das Hauptfenster von Goom gelegt."
