@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef ANDROID
+#include <strings.h>
+#endif
 #include <inttypes.h>
 
 #include "goom.h"
