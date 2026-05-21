@@ -40,11 +40,11 @@ public:
   CVisualizationGoom();
   ~CVisualizationGoom() override;
 
-  bool Start(int channels,
+  bool Init() override;
+  void DeInit() override;
+  bool AudioStart(int channels,
              int samplesPerSec,
-             int bitsPerSample,
-             const std::string& songName) override;
-  void Stop() override;
+             int bitsPerSample) override;
   bool IsDirty() override;
   void Render() override;
   void AudioData(const float* audioData, size_t audioDataLength) override;
