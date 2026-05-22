@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2022 Team Kodi (https://kodi.tv)
+ *  Copyright (C) 2005-2026 Team Kodi (https://kodi.tv)
  *  Copyright (C) 2005-2013 Team XBMC
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
@@ -58,30 +58,8 @@ CVisualizationGoom::~CVisualizationGoom()
   kodi::Log(ADDON_LOG_DEBUG, "~CVisualizationGoom: Destroyed CVisualizationGoom object.");
 }
 
-//-- Start --------------------------------------------------------------------
-// Called when a new soundtrack is played
-//-----------------------------------------------------------------------------
-bool CVisualizationGoom::Start(int iChannels,
-                               int iSamplesPerSec,
-                               int iBitsPerSample,
-                               const std::string& szSongName)
+bool CVisualizationGoom::Init()
 {
-  if (m_started)
-  {
-    kodi::Log(ADDON_LOG_WARNING, "Start: Already started without a stop - skipping this.");
-    return true;
-  }
-
-  m_channels = iChannels;
-  m_audioBufferLen = m_channels * AUDIO_SAMPLE_LEN;
-  m_currentSongName = szSongName;
-  m_titleChange = true;
-
-  // Make one init frame in black
-  std::shared_ptr<uint32_t> sp(new uint32_t[m_goomBufferLen], std::default_delete<uint32_t[]>());
-  memset(sp.get(), 0, m_goomBufferSize);
-  m_activeQueue.push(sp);
-
   // Init GL parts
   if (!LoadShaderFiles(kodi::addon::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/vert.glsl"),
                        kodi::addon::GetAddonPath("resources/shaders/" GL_TYPE_STRING "/frag.glsl")))
@@ -102,18 +80,13 @@ bool CVisualizationGoom::Start(int iChannels,
     return false;
   }
 
-  // Start the goom process thread
-  kodi::Log(ADDON_LOG_DEBUG, "Start: Setting up buffer worker thread.");
-  m_workerThread = std::thread(&CVisualizationGoom::Process, this);
-
-  m_started = true;
   return true;
 }
 
 //-- Stop ---------------------------------------------------------------------
 // Called when the visualisation is closed by Kodi
 //-----------------------------------------------------------------------------
-void CVisualizationGoom::Stop()
+void CVisualizationGoom::DeInit()
 {
   if (!m_started)
   {
@@ -140,6 +113,36 @@ void CVisualizationGoom::Stop()
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glDeleteBuffers(1, &m_vertexVBO);
   m_vertexVBO = 0;
+}
+
+//-- Start --------------------------------------------------------------------
+// Called when a new soundtrack is played
+//-----------------------------------------------------------------------------
+bool CVisualizationGoom::AudioStart(int iChannels,
+                               int iSamplesPerSec,
+                               int iBitsPerSample)
+{
+  if (m_started)
+  {
+    kodi::Log(ADDON_LOG_WARNING, "Start: Already started without a stop - skipping this.");
+    return true;
+  }
+
+  m_channels = iChannels;
+  m_audioBufferLen = m_channels * AUDIO_SAMPLE_LEN;
+  m_titleChange = true;
+
+  // Make one init frame in black
+  std::shared_ptr<uint32_t> sp(new uint32_t[m_goomBufferLen], std::default_delete<uint32_t[]>());
+  memset(sp.get(), 0, m_goomBufferSize);
+  m_activeQueue.push(sp);
+
+  // Start the goom process thread
+  kodi::Log(ADDON_LOG_DEBUG, "Start: Setting up buffer worker thread.");
+  m_workerThread = std::thread(&CVisualizationGoom::Process, this);
+
+  m_started = true;
+  return true;
 }
 
 void CVisualizationGoom::OnCompiledAndLinked()

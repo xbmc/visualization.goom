@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2005-2022 Team Kodi (https://kodi.tv)
+ *  Copyright (C) 2005-2026 Team Kodi (https://kodi.tv)
  *  Copyright (C) 2005-2013 Team XBMC
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
@@ -40,11 +40,11 @@ public:
   CVisualizationGoom();
   ~CVisualizationGoom() override;
 
-  bool Start(int channels,
+  bool Init() override;
+  void DeInit() override;
+  bool AudioStart(int channels,
              int samplesPerSec,
-             int bitsPerSample,
-             const std::string& songName) override;
-  void Stop() override;
+             int bitsPerSample) override;
   bool IsDirty() override;
   void Render() override;
   void AudioData(const float* audioData, size_t audioDataLength) override;
